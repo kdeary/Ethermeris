@@ -1,2 +1,2 @@
-# incision
-JavaScript Game Engine based off of MIT's Scratch.
+# Ethermeris
+Simple & Blazing Fast Socket Networking Framework for Node.js
