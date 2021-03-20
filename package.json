@@ -1,0 +1,32 @@
+{
+  "name": "ethermeris",
+  "version": "0.0.1",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node src/index.js",
+    "build": "browserify ./src/index.js --standalone Ethermeris -o ./dist/ethermeris.js",
+    "watch": "watchify ./src/index.js --standalone Ethermeris -o ./dist/ethermeris.js -v"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/raikutro/ethermeris.git"
+  },
+  "keywords": [
+    "game",
+    "engine",
+    "scratch"
+  ],
+  "author": "raikutro",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/raikutro/ethermeris/issues"
+  },
+  "homepage": "https://github.com/raikutro/ethermeris#readme",
+  "dependencies": {
+    
+  },
+  "devDependencies": {
+    "browserify": "^17.0.0"
+  }
+}
