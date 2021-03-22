@@ -4,7 +4,6 @@
 // Create event emitter for events like players disconnecting or player key press events
 const EventEmitter = require('eventemitter3');
 const url = require('url');
-const isPlainObject = require('is-plain-object');
 const _ = require('lodash');
 const detailedDiff = require('deep-object-diff').detailedDiff;
 const Networker = require('./Networker');
@@ -13,6 +12,7 @@ const Utils = require('./modules/Utils');
 
 class EthermerisServer {
 	constructor(settings) {
+		this.serverID = settings.serverID;
 		this.stateSchema = settings.stateSchema;
 		this._state = { ...(this.stateSchema) };
 
@@ -45,27 +45,6 @@ class EthermerisServer {
 
 	once(...args) {
 		this.emitter.once(...args);
-	}
-
-	attachToServer(serverID, httpServer) {
-		if(!(httpServer||{}).on) throw new Error("Invalid HTTP Server");
-
-		httpServer.on('upgrade', (request, socket, head) => {
-			const pathname = url.parse(request.url).pathname;
-			// console.log("upgrade", pathname);
-
-			if(pathname === "/" + serverID) {
-				const wsServer = this.getWebSocketServer();
-				wsServer.handleUpgrade(request, socket, head, ws => {
-					// console.log("connection");
-					wsServer.emit('connection', ws, request);
-				});
-			} else {
-				socket.destroy();
-			}
-		});
-
-		return;
 	}
 
 	setState(newPartialState, clientModifier, shallowMerge) {

@@ -1,4 +1,5 @@
 const WebSocket = require('ws');
+const WebRTC = require('wrtc');
 const EventEmitter = require('eventemitter3');
 const { encode, decode } = require('msgpack-lite');
 const ClientConnection = require('./ClientConnection');
@@ -17,11 +18,13 @@ class Networker {
 		this.connectionsMade = 0;
 		this.getState = settings.getState;
 		this.getInitialData = settings.getInitialData || (() => {});
+		this.createRTCPeerConnection = null;
 
-		this.attachConnectionHandlers();
+		this.attachServerHandlers();
+		this.attachEventHandlers();
 	}
 
-	attachConnectionHandlers() {
+	attachServerHandlers() {
 		this.wsServer.on('connection', ws => {
 			this.connectionsMade++;
 			let clientID = Number(this.connectionsMade);
@@ -33,6 +36,30 @@ class Networker {
 			});
 		});
 
+		this.createRTCPeerConnection = async (description) => {
+			this.connectionsMade++;
+			let clientID = Number(this.connectionsMade);
+			this.connections[clientID] = new ClientConnection({
+				clientID,
+				connection: new WebRTC.RTCPeerConnection(),
+				emitter: this.emitter,
+				isWebSocket: false
+			});
+
+			const clientConnection = this.connections[clientID].connection;
+
+			await clientConnection.setRemoteDescription(description);
+			let answer = await clientConnection.createAnswer();
+			await clientConnection.setLocalDescription(answer);
+
+			return {
+				clientID: clientID,
+				description: clientConnection.localDescription
+			};
+		};
+	}
+
+	attachEventHandlers() {
 		this.emitter.on('client_message', (client, data) => {
 			let blob = decode(data);
 			let event = Utils.decompressNetworkEvent(blob);
@@ -67,6 +94,15 @@ class Networker {
 			this.serverEmitter.emit('disconnection', client);
 			delete this.connections[client.id];
 		});
+	}
+
+	async exchangeICECandiatesWithConnection(candidate, clientID) {
+		// console.log(candidate, clientID);
+		const connection = this.connections[clientID];
+		if(!connection) throw "Invalid Client ID";
+		if(connection.isWebSocket) throw "Client is using WebSockets";
+		let serverCandidate = await connection.exchangeICECandidates(candidate);
+		return serverCandidate;
 	}
 
 	addCompressor(data) {

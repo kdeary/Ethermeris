@@ -45,4 +45,13 @@ Utils.fullDiff = (obj1, obj2) => {
 	return _.merge({}, splitDiff.added, splitDiff.deleted, splitDiff.updated);
 }
 
+Utils.waitUntil = (boolFunc, ms=100) => new Promise(resolve => {
+	let interval = setInterval(() => {
+		if(boolFunc()) {
+			clearInterval(interval);
+			resolve(true);
+		}
+	}, ms);
+});
+
 module.exports = Utils;

@@ -4748,53 +4748,13 @@ var Uint64BE, Int64BE, Uint64LE, Int64LE;
 
 }).call(this)}).call(this,require("buffer").Buffer)
 },{"buffer":3}],21:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
-/*!
- * is-plain-object <https://github.com/jonschlinkert/is-plain-object>
- *
- * Copyright (c) 2014-2017, Jon Schlinkert.
- * Released under the MIT License.
- */
-
-function isObject(o) {
-  return Object.prototype.toString.call(o) === '[object Object]';
-}
-
-function isPlainObject(o) {
-  var ctor,prot;
-
-  if (isObject(o) === false) return false;
-
-  // If has modified constructor
-  ctor = o.constructor;
-  if (ctor === undefined) return true;
-
-  // If has modified prototype
-  prot = ctor.prototype;
-  if (isObject(prot) === false) return false;
-
-  // If constructor does not have an Object-specific method
-  if (prot.hasOwnProperty('isPrototypeOf') === false) {
-    return false;
-  }
-
-  // Most likely a plain Object
-  return true;
-}
-
-exports.isPlainObject = isPlainObject;
-
-},{}],22:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-},{}],23:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 (function (global){(function (){
 /**
  * @license
@@ -22007,7 +21967,7 @@ module.exports = Array.isArray || function (arr) {
 }.call(this));
 
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],24:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 // browser.js
 
 exports.encode = require("./encode").encode;
@@ -22019,7 +21979,7 @@ exports.Decoder = require("./decoder").Decoder;
 exports.createCodec = require("./ext").createCodec;
 exports.codec = require("./codec").codec;
 
-},{"./codec":33,"./decode":35,"./decoder":36,"./encode":38,"./encoder":39,"./ext":43}],25:[function(require,module,exports){
+},{"./codec":32,"./decode":34,"./decoder":35,"./encode":37,"./encoder":38,"./ext":42}],24:[function(require,module,exports){
 (function (Buffer){(function (){
 /* globals Buffer */
 
@@ -22033,7 +21993,7 @@ function c(B) {
   return B && B.isBuffer && B;
 }
 }).call(this)}).call(this,require("buffer").Buffer)
-},{"buffer":3}],26:[function(require,module,exports){
+},{"buffer":3}],25:[function(require,module,exports){
 // buffer-lite.js
 
 var MAXBUFLEN = 8192;
@@ -22169,7 +22129,7 @@ function copy(target, targetStart, start, end) {
   return len;
 }
 
-},{}],27:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 // bufferish-array.js
 
 var Bufferish = require("./bufferish");
@@ -22212,7 +22172,7 @@ function from(value) {
   return Array.prototype.slice.call(value);
 }
 
-},{"./bufferish":31}],28:[function(require,module,exports){
+},{"./bufferish":30}],27:[function(require,module,exports){
 // bufferish-buffer.js
 
 var Bufferish = require("./bufferish");
@@ -22260,7 +22220,7 @@ function from(value) {
   }
 }
 
-},{"./bufferish":31}],29:[function(require,module,exports){
+},{"./bufferish":30}],28:[function(require,module,exports){
 // bufferish-proto.js
 
 /* jshint eqnull:true */
@@ -22348,7 +22308,7 @@ function gen(method) {
   }
 }
 
-},{"./buffer-lite":26,"./bufferish":31}],30:[function(require,module,exports){
+},{"./buffer-lite":25,"./bufferish":30}],29:[function(require,module,exports){
 // bufferish-uint8array.js
 
 var Bufferish = require("./bufferish");
@@ -22401,7 +22361,7 @@ function from(value) {
   return new Uint8Array(value);
 }
 
-},{"./bufferish":31}],31:[function(require,module,exports){
+},{"./bufferish":30}],30:[function(require,module,exports){
 // bufferish.js
 
 var Buffer = exports.global = require("./buffer-global");
@@ -22510,7 +22470,7 @@ function _is(name, key) {
     return (value != null) && {}.toString.call(key ? value[key] : value) === name;
   };
 }
-},{"./buffer-global":25,"./bufferish-array":27,"./bufferish-buffer":28,"./bufferish-proto":29,"./bufferish-uint8array":30,"isarray":22}],32:[function(require,module,exports){
+},{"./buffer-global":24,"./bufferish-array":26,"./bufferish-buffer":27,"./bufferish-proto":28,"./bufferish-uint8array":29,"isarray":21}],31:[function(require,module,exports){
 // codec-base.js
 
 var IS_ARRAY = require("isarray");
@@ -22579,7 +22539,7 @@ function createCodec(options) {
 
 exports.preset = createCodec({preset: true});
 
-},{"./bufferish":31,"isarray":22}],33:[function(require,module,exports){
+},{"./bufferish":30,"isarray":21}],32:[function(require,module,exports){
 // codec.js
 
 // load both interfaces
@@ -22593,7 +22553,7 @@ exports.codec = {
   preset: require("./codec-base").preset
 };
 
-},{"./codec-base":32,"./read-core":45,"./write-core":48}],34:[function(require,module,exports){
+},{"./codec-base":31,"./read-core":44,"./write-core":47}],33:[function(require,module,exports){
 // decode-buffer.js
 
 exports.DecodeBuffer = DecodeBuffer;
@@ -22622,7 +22582,7 @@ DecodeBuffer.prototype.fetch = function() {
   return this.codec.decode(this);
 };
 
-},{"./flex-buffer":44,"./read-core":45}],35:[function(require,module,exports){
+},{"./flex-buffer":43,"./read-core":44}],34:[function(require,module,exports){
 // decode.js
 
 exports.decode = decode;
@@ -22634,7 +22594,7 @@ function decode(input, options) {
   decoder.write(input);
   return decoder.read();
 }
-},{"./decode-buffer":34}],36:[function(require,module,exports){
+},{"./decode-buffer":33}],35:[function(require,module,exports){
 // decoder.js
 
 exports.Decoder = Decoder;
@@ -22665,7 +22625,7 @@ Decoder.prototype.end = function(chunk) {
   this.emit("end");
 };
 
-},{"./decode-buffer":34,"event-lite":17}],37:[function(require,module,exports){
+},{"./decode-buffer":33,"event-lite":17}],36:[function(require,module,exports){
 // encode-buffer.js
 
 exports.EncodeBuffer = EncodeBuffer;
@@ -22694,7 +22654,7 @@ EncodeBuffer.prototype.write = function(input) {
   this.codec.encode(this, input);
 };
 
-},{"./flex-buffer":44,"./write-core":48}],38:[function(require,module,exports){
+},{"./flex-buffer":43,"./write-core":47}],37:[function(require,module,exports){
 // encode.js
 
 exports.encode = encode;
@@ -22707,7 +22667,7 @@ function encode(input, options) {
   return encoder.read();
 }
 
-},{"./encode-buffer":37}],39:[function(require,module,exports){
+},{"./encode-buffer":36}],38:[function(require,module,exports){
 // encoder.js
 
 exports.Encoder = Encoder;
@@ -22735,7 +22695,7 @@ Encoder.prototype.end = function(chunk) {
   this.emit("end");
 };
 
-},{"./encode-buffer":37,"event-lite":17}],40:[function(require,module,exports){
+},{"./encode-buffer":36,"event-lite":17}],39:[function(require,module,exports){
 // ext-buffer.js
 
 exports.ExtBuffer = ExtBuffer;
@@ -22748,7 +22708,7 @@ function ExtBuffer(buffer, type) {
   this.type = type;
 }
 
-},{"./bufferish":31}],41:[function(require,module,exports){
+},{"./bufferish":30}],40:[function(require,module,exports){
 // ext-packer.js
 
 exports.setExtPackers = setExtPackers;
@@ -22828,7 +22788,7 @@ function packError(value) {
   return out;
 }
 
-},{"./bufferish":31,"./encode":38}],42:[function(require,module,exports){
+},{"./bufferish":30,"./encode":37}],41:[function(require,module,exports){
 // ext-unpacker.js
 
 exports.setExtUnpackers = setExtUnpackers;
@@ -22911,7 +22871,7 @@ function unpackArrayBuffer(value) {
   return (new Uint8Array(value)).buffer;
 }
 
-},{"./bufferish":31,"./decode":35}],43:[function(require,module,exports){
+},{"./bufferish":30,"./decode":34}],42:[function(require,module,exports){
 // ext.js
 
 // load both interfaces
@@ -22920,7 +22880,7 @@ require("./write-core");
 
 exports.createCodec = require("./codec-base").createCodec;
 
-},{"./codec-base":32,"./read-core":45,"./write-core":48}],44:[function(require,module,exports){
+},{"./codec-base":31,"./read-core":44,"./write-core":47}],43:[function(require,module,exports){
 // flex-buffer.js
 
 exports.FlexDecoder = FlexDecoder;
@@ -23116,7 +23076,7 @@ function mixinFactory(source) {
   }
 }
 
-},{"./bufferish":31}],45:[function(require,module,exports){
+},{"./bufferish":30}],44:[function(require,module,exports){
 // read-core.js
 
 var ExtBuffer = require("./ext-buffer").ExtBuffer;
@@ -23170,7 +23130,7 @@ function getExtUnpacker(type) {
   }
 }
 
-},{"./codec-base":32,"./ext-buffer":40,"./ext-unpacker":42,"./read-format":46,"./read-token":47}],46:[function(require,module,exports){
+},{"./codec-base":31,"./ext-buffer":39,"./ext-unpacker":41,"./read-format":45,"./read-token":46}],45:[function(require,module,exports){
 // read-format.js
 
 var ieee754 = require("ieee754");
@@ -23352,7 +23312,7 @@ function readFloatBE(start) {
 function readDoubleBE(start) {
   return ieee754.read(this, start, false, 52, 8);
 }
-},{"./bufferish":31,"./bufferish-proto":29,"ieee754":19,"int64-buffer":20}],47:[function(require,module,exports){
+},{"./bufferish":30,"./bufferish-proto":28,"ieee754":19,"int64-buffer":20}],46:[function(require,module,exports){
 // read-token.js
 
 var ReadFormat = require("./read-format");
@@ -23515,7 +23475,7 @@ function fix(len, method) {
   };
 }
 
-},{"./read-format":46}],48:[function(require,module,exports){
+},{"./read-format":45}],47:[function(require,module,exports){
 // write-core.js
 
 var ExtBuffer = require("./ext-buffer").ExtBuffer;
@@ -23586,7 +23546,7 @@ function getExtPacker(value) {
   }
 }
 
-},{"./codec-base":32,"./ext-buffer":40,"./ext-packer":41,"./write-type":50}],49:[function(require,module,exports){
+},{"./codec-base":31,"./ext-buffer":39,"./ext-packer":40,"./write-type":49}],48:[function(require,module,exports){
 // write-token.js
 
 var ieee754 = require("ieee754");
@@ -23815,7 +23775,7 @@ function writeDoubleBE(value, offset) {
   ieee754.write(this, value, offset, false, 52, 8);
 }
 
-},{"./bufferish":31,"./write-uint8":51,"ieee754":19,"int64-buffer":20}],50:[function(require,module,exports){
+},{"./bufferish":30,"./write-uint8":50,"ieee754":19,"int64-buffer":20}],49:[function(require,module,exports){
 // write-type.js
 
 var IS_ARRAY = require("isarray");
@@ -24086,7 +24046,7 @@ function getWriteType(options) {
   }
 }
 
-},{"./bufferish":31,"./bufferish-proto":29,"./ext-buffer":40,"./write-token":49,"./write-uint8":51,"int64-buffer":20,"isarray":22}],51:[function(require,module,exports){
+},{"./bufferish":30,"./bufferish-proto":28,"./ext-buffer":39,"./write-token":48,"./write-uint8":50,"int64-buffer":20,"isarray":21}],50:[function(require,module,exports){
 // write-unit8.js
 
 var constant = exports.uint8 = new Array(256);
@@ -24102,6 +24062,26 @@ function write0(type) {
   };
 }
 
+},{}],51:[function(require,module,exports){
+'use strict';
+
+exports.MediaStream = window.MediaStream;
+exports.MediaStreamTrack = window.MediaStreamTrack;
+exports.RTCDataChannel = window.RTCDataChannel;
+exports.RTCDataChannelEvent = window.RTCDataChannelEvent;
+exports.RTCDtlsTransport = window.RTCDtlsTransport;
+exports.RTCIceCandidate = window.RTCIceCandidate;
+exports.RTCIceTransport = window.RTCIceTransport;
+exports.RTCPeerConnection = window.RTCPeerConnection;
+exports.RTCPeerConnectionIceEvent = window.RTCPeerConnectionIceEvent;
+exports.RTCRtpReceiver = window.RTCRtpReceiver;
+exports.RTCRtpSender = window.RTCRtpSender;
+exports.RTCRtpTransceiver = window.RTCRtpTransceiver;
+exports.RTCSctpTransport = window.RTCSctpTransport;
+exports.RTCSessionDescription = window.RTCSessionDescription;
+exports.getUserMedia = window.getUserMedia;
+exports.mediaDevices = navigator.mediaDevices;
+
 },{}],52:[function(require,module,exports){
 'use strict';
 
@@ -24113,6 +24093,7 @@ module.exports = function () {
 };
 
 },{}],53:[function(require,module,exports){
+(function (Buffer){(function (){
 const { encode, decode } = require('msgpack-lite');
 const SETTINGS = require('./modules/SETTINGS');
 const Utils = require('./modules/Utils');
@@ -24126,21 +24107,60 @@ class ClientConnection {
 	}) {
 		this.id = clientID;
 		this.connection = connection;
+		this.dataChannel = null;
 		this.isWebSocket = isWebSocket;
 		this.emitter = emitter;
 		this.activated = false;
 		this.lastPingTimeout = null;
+		this.iceCandidate = null;
 
 		this.resetAlive();
-		this.attachHandlers();
+
+		this.isWebSocket ? this.attachSocketHandlers() : this.attachWebRTCHandlers();
 	}
 
-	attachHandlers() {
+	attachWebRTCHandlers() {
+		this.connection.onicecandidate = e => {
+			const candidate = e.candidate;
+			if(candidate && candidate.protocol === "udp" && candidate.component === "rtp") {
+				this.iceCandidate = candidate;
+			}
+		};
+
+		this.connection.ondatachannel = e => {
+			// console.log(e.channel);
+			if(this.dataChannel) return;
+
+			this.dataChannel = e.channel;
+			this.dataChannel.onmessage = event => {
+				// console.log(event);
+				this.onMessageData(Buffer.from(event.data));
+			};
+
+			this.dataChannel.onopen = e => {};
+			this.dataChannel.onclose = () => this.destroy();
+		};
+	}
+
+	attachSocketHandlers() {
 		this.connection.on('message', message => {
-			// console.log("MESSAGE RECEIVED", this.id, message);
-			this.emitter.emit('client_message', this, message);
-			this.resetAlive();
+			this.onMessageData(message);
 		});
+
+		this.connection.on('close', () => this.destroy());
+	}
+
+	onMessageData(message) {
+		// console.log("MESSAGE RECEIVED", this.id, message);
+		this.emitter.emit('client_message', this, message);
+		this.resetAlive();
+	}
+
+	async exchangeICECandidates(candidate) {
+		await this.connection.addIceCandidate(candidate);
+		await Utils.waitUntil(() => this.iceCandidate);
+
+		return this.iceCandidate;
 	}
 
 	resetAlive() {
@@ -24155,8 +24175,13 @@ class ClientConnection {
 	}
 
 	destroy() {
+		if(this.isWebSocket) {
+			this.connection.terminate();
+		} else {
+
+		}
+
 		this.activated = false;
-		this.connection.terminate();
 		this.emitter.emit('client_disconnected', this);
 	}
 
@@ -24166,13 +24191,17 @@ class ClientConnection {
 		let ui32 = b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
 
 		// console.log()
-
-		this.connection.send(ui32);
+		if(this.isWebSocket) {
+			this.connection.send(ui32);
+		} else {
+			this.dataChannel.send(ui32);
+		}
 	}
 }
 
 module.exports = ClientConnection;
-},{"./modules/SETTINGS":60,"./modules/Utils":61,"msgpack-lite":24}],54:[function(require,module,exports){
+}).call(this)}).call(this,require("buffer").Buffer)
+},{"./modules/SETTINGS":60,"./modules/Utils":61,"buffer":3,"msgpack-lite":23}],54:[function(require,module,exports){
 const _ = require('lodash');
 const EventEmitter = require('eventemitter3');
 const { encode, decode } = require('msgpack-lite');
@@ -24183,26 +24212,106 @@ class EthermerisClient {
 	constructor(settings) {
 		this.state = {};
 		this.emitter = new EventEmitter();
+		this.id = null;
+		this.ready = false;
 		this.socket = null;
-		this.socketPathname = settings.pathname || "";
+		this.peerConnection = null;
+		this.dataChannel = null;
 		this.pingInterval = null;
+		this.serverID = settings.serverID || "";
+		this.verboseLogger = settings.verbose || false;
+
+		this.iceCandidateReceived = false;
+		
+		this.signalServerRoute = settings.signalServerRoute || "/signal";
+		this.candidateServerRoute = settings.candidateServerRoute || "/ice_candidate";
+
 		this.getInitialData = settings.getInitialData || (() => {});
 	}
 
-	init() {
-		this.socket = new WebSocket(
-			(location.protocol === "https:" ? "wss://" : "ws://") + location.host + this.socketPathname
-		);
-		this.attachHandlers();
+	async init() {
+		if(window.RTCPeerConnection) {
+			let webRTCConnected = await this.initWebRTC().catch(e => {
+				console.error("Error connecting using WebRTC: ", e);
+				return false;
+			});
+
+			if(!webRTCConnected) {
+				console.warn("Falling back to WebSockets...");
+				this.destroy();
+
+				await this.initWebSockets();
+			}
+		} else {
+			await this.initWebSockets();
+		}
 
 		return this;
+	}
+
+	async initWebRTC() {
+		this._log("Starting WebRTC peer connection");
+		// Create the connection and data channel
+		this.peerConnection = new RTCPeerConnection();
+		this.dataChannel = this.peerConnection.createDataChannel("data");
+		this.binaryType = "blob";
+
+		// Attach the necessary handlers
+		this.attachWebRTCHandlers();
+
+		this._log("Creating connection offer");
+		// Create an offer
+		let offer = await this.peerConnection.createOffer();
+		await this.peerConnection.setLocalDescription(offer);
+		this._log("Local description has been set");
+
+		// Signal for the servers description
+		let response = await fetch(this.signalServerRoute, {
+			method: "POST",
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				serverID: this.serverID,
+				description: this.peerConnection.localDescription
+			})
+		}).then(a => a.json());
+
+		if(response.err) throw "Error connecting to signal server. ERROR CODE: " + response.err;
+
+		this.id = response.clientID;
+		// Use the response as the description
+		await this.peerConnection.setRemoteDescription(response.description);
+
+		await Utils.waitUntil(() => this.iceCandidateReceived);
+
+		return true;
+	}
+
+	async initWebSockets() {
+		this.socket = new WebSocket(
+			(location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ether_" + this.serverID
+		);
+		this.attachSocketHandlers();
+
+		return true;
 	}
 
 	destroy() {
 		clearInterval(this.pingInterval);
 		this.emitter = null;
-		this.socket.close();
-		this.socket = null;
+
+		if(this.peerConnection){
+			this.dataChannel.close();
+			this.peerConnection.close();
+			this.peerConnection = null;
+			this.dataChannel = null;
+		}
+
+		if(this.socket){
+			this.socket.close();
+			this.socket = null;
+		}
 	}
 
 	on(...args) {
@@ -24217,30 +24326,72 @@ class EthermerisClient {
 		this.emitter.once(...args);
 	}
 
-	attachHandlers() {
-		this.socket.addEventListener('open', () => {
-			this.sendEvent(SETTINGS.EVENTS.CLIENT_CONNECT_REQUEST, this.getInitialData());
-			this.pingInterval = setInterval(() => {
-				this.sendEvent(SETTINGS.EVENTS.PING);
-			}, SETTINGS.HEARTBEAT_PING_INTERVAL);
+	attachWebRTCHandlers() {
+		this.dataChannel.addEventListener('open', () => this.onConnectionOpen());
+
+		this.dataChannel.addEventListener('message', async (rawEvent) => {
+			let arrayBuffer = new Uint8Array(rawEvent.data);
+			await this.onMessageBlob(arrayBuffer);
 		});
+
+		// Wait for an ICE candidate and then send the correct one
+		this.peerConnection.addEventListener('icecandidate', async (e) => {
+			const candidate = e.candidate;
+			if(candidate && candidate.protocol === "udp" && candidate.component === "rtp"){
+				await Utils.waitUntil(() => this.id !== null);
+
+				let response = await fetch(this.candidateServerRoute, {
+					method: "POST",
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({
+						serverID: this.serverID,
+						clientID: this.id,
+						candidate: candidate
+					})
+				}).then(a => a.json());
+
+				if(response.err) throw "Error connecting to candidate server. ERROR CODE: " + response.err;
+
+				await this.peerConnection.addIceCandidate(response);
+
+				this.iceCandidateReceived = true;
+			}
+		});
+	}
+
+	attachSocketHandlers() {
+		this.socket.addEventListener('open', () => this.onConnectionOpen());
 
 		this.socket.addEventListener('message', async (rawEvent) => {
 			let blob = rawEvent.data;
-
 			let blobArray = new Uint8Array(await blob.arrayBuffer());
 
-			let data = decode(blobArray);
-			let event = Utils.decompressNetworkEvent(data);
-
-			if(event.name === SETTINGS.EVENTS.INITIAL_DATA) {
-				this.emitStartData(event.data[0], event.data[1]);
-			} else if(event.name === SETTINGS.EVENTS.STATE_UPDATE) {
-				this.handlePartialState(event.data);
-			} else {
-				this.emitter.emit(event.name, event.data);
-			}
+			await this.onMessageBlob(blobArray);
 		});
+	}
+
+	onConnectionOpen(){
+		this._log("Connection open");
+		this.ready = true;
+		this.sendEvent(SETTINGS.EVENTS.CLIENT_CONNECT_REQUEST, this.getInitialData());
+		this.pingInterval = setInterval(() => {
+			this.sendEvent(SETTINGS.EVENTS.PING);
+		}, SETTINGS.HEARTBEAT_PING_INTERVAL);
+	}
+
+	async onMessageBlob(arrayBuffer) {
+		let data = decode(arrayBuffer);
+		let event = Utils.decompressNetworkEvent(data);
+
+		if(event.name === SETTINGS.EVENTS.INITIAL_DATA) {
+			this.emitStartData(event.data[0], event.data[1]);
+		} else if(event.name === SETTINGS.EVENTS.STATE_UPDATE) {
+			this.handlePartialState(event.data);
+		} else {
+			this.emitter.emit(event.name, event.data);
+		}
 	}
 
 	emitStartData(initialState, initialData) {
@@ -24258,29 +24409,48 @@ class EthermerisClient {
 	}
 
 	sendEvent(name, data) {
+		if(!this.ready) return false;
+
 		let event = Utils.compressNetworkEvent(name, data);
 		let blob = encode(event);
 
-		this.socket.send(blob);
+		if(this.dataChannel){
+			this.dataChannel.send(blob);
+			return true;
+		} else if(this.socket){
+			this.socket.send(blob);
+			return true;
+		}
+
+		return false;
+	}
+
+	_log(...args) {
+		if(!this.verboseLogger) return;
+		return console.log("ETHERMERIS CLIENT - ", ...args);
 	}
 }
 
 module.exports = EthermerisClient;
-},{"./modules/SETTINGS":60,"./modules/Utils":61,"eventemitter3":18,"lodash":23,"msgpack-lite":24}],55:[function(require,module,exports){
+},{"./modules/SETTINGS":60,"./modules/Utils":61,"eventemitter3":18,"lodash":22,"msgpack-lite":23}],55:[function(require,module,exports){
+(function (Buffer){(function (){
 const url = require('url');
 const EthermerisServer = require('./EthermerisServer');
 const Utils = require('./modules/Utils');
 
 class EthermerisManager {
 	constructor(settings) {
-		this.httpServer = settings.httpServer;
+		this.httpServer = settings.httpServer || null;
+		this.signalServerRoute = settings.signalServerRoute || "/signal";
+		this.candidateServerRoute = settings.candidateServerRoute || "/ice_candidate";
+
 		this.servers = {};
 
 		if(!this.httpServer) throw new Error("No HTTP server given to manager.");
 
 		this.httpServer.on('upgrade', (request, socket, head) => {
 			const pathname = url.parse(request.url).pathname;
-			const serverID = pathname.replace("/", "");
+			const serverID = pathname.replace("/ether_", "");
 
 			if(this.servers[serverID]) {
 				const wsServer = this.servers[serverID].getWebSocketServer();
@@ -24291,32 +24461,100 @@ class EthermerisManager {
 				socket.destroy();
 			}
 		});
+
+		this.httpServer.on('request', (request, response) => {
+			const { method, url } = request;
+
+			if(method === "POST" && url === this.signalServerRoute) {
+				response.writeHead(200, {'Content-Type': 'application/json'})
+
+				let body = [];
+				request.on('error', (err) => {
+					console.error("Error while signalling client:", err);
+				}).on('data', (chunk) => {
+					body.push(chunk);
+				}).on('end', async () => {
+					body = jsonTryParse(Buffer.concat(body).toString());
+					if(!jsonTryParse) return response.end(`{"err": 1}`);
+					if(!this.servers[body.serverID]) return response.end(`{"err": 2}`);
+
+					let description = await this.servers[body.serverID].networker.createRTCPeerConnection(
+						body.description
+					).catch(err => {
+						console.error("Error while trying to create RTC peer connection:", err);
+						return false;
+					});
+
+					if(!description) return response.end(`{"err": 3}`);
+
+					response.end(JSON.stringify(description));
+				});
+			} else if(method === "POST" && url === this.candidateServerRoute) {
+				response.writeHead(200, {'Content-Type': 'application/json'})
+
+				let body = [];
+				request.on('error', (err) => {
+					console.error("Error while transporting ice candidates from the client:", err);
+				}).on('data', (chunk) => {
+					body.push(chunk);
+				}).on('end', async () => {
+					body = jsonTryParse(Buffer.concat(body).toString());
+					if(!jsonTryParse) return response.end(`{"err": 1}`);
+					if(!this.servers[body.serverID]) return response.end(`{"err": 2}`);
+
+					let candidate = await this.servers[body.serverID].networker.exchangeICECandiatesWithConnection(
+						body.candidate,
+						body.clientID
+					).catch(err => {
+						console.error("Error while trying to exchange ICE candidates:", err);
+						return false;
+					});
+
+					if(!candidate) return response.end(`{"err": 3}`);
+
+					response.end(JSON.stringify(candidate));
+				});
+			}
+		});
 	}
 
 	createServer(settings) {
 		let serverID = Utils.makeID(5);
-		this.servers[serverID] = new EthermerisServer(settings);
+		const server = new EthermerisServer({
+			serverID,
+			...(settings)
+		});
 
-		return serverID;
+		this.servers[server.serverID] = server;
+
+		return server;
 	}
 
 	attach(server) {
-		let serverID = Utils.makeID(5);
+		let serverID = server.serverID || (server.serverID = Utils.makeID(5));
 		this.servers[serverID] = server;
 
 		return serverID;
 	}
 }
 
+function jsonTryParse(value) {
+	try {
+		return JSON.parse(value);
+	} catch(e) {
+		return;
+	}
+}
+
 module.exports = EthermerisManager;
-},{"./EthermerisServer":56,"./modules/Utils":61,"url":8}],56:[function(require,module,exports){
+}).call(this)}).call(this,require("buffer").Buffer)
+},{"./EthermerisServer":56,"./modules/Utils":61,"buffer":3,"url":8}],56:[function(require,module,exports){
 // Import Networker
 // Create array -> key system for further compression
 // Send decompression keys to client on first connection
 // Create event emitter for events like players disconnecting or player key press events
 const EventEmitter = require('eventemitter3');
 const url = require('url');
-const isPlainObject = require('is-plain-object');
 const _ = require('lodash');
 const detailedDiff = require('deep-object-diff').detailedDiff;
 const Networker = require('./Networker');
@@ -24325,6 +24563,7 @@ const Utils = require('./modules/Utils');
 
 class EthermerisServer {
 	constructor(settings) {
+		this.serverID = settings.serverID;
 		this.stateSchema = settings.stateSchema;
 		this._state = { ...(this.stateSchema) };
 
@@ -24357,27 +24596,6 @@ class EthermerisServer {
 
 	once(...args) {
 		this.emitter.once(...args);
-	}
-
-	attachToServer(serverID, httpServer) {
-		if(!(httpServer||{}).on) throw new Error("Invalid HTTP Server");
-
-		httpServer.on('upgrade', (request, socket, head) => {
-			const pathname = url.parse(request.url).pathname;
-			// console.log("upgrade", pathname);
-
-			if(pathname === "/" + serverID) {
-				const wsServer = this.getWebSocketServer();
-				wsServer.handleUpgrade(request, socket, head, ws => {
-					// console.log("connection");
-					wsServer.emit('connection', ws, request);
-				});
-			} else {
-				socket.destroy();
-			}
-		});
-
-		return;
 	}
 
 	setState(newPartialState, clientModifier, shallowMerge) {
@@ -24428,8 +24646,9 @@ class EthermerisServer {
 // );
 
 module.exports = EthermerisServer;
-},{"./Networker":57,"./modules/SETTINGS":60,"./modules/Utils":61,"deep-object-diff":14,"eventemitter3":18,"is-plain-object":21,"lodash":23,"url":8}],57:[function(require,module,exports){
+},{"./Networker":57,"./modules/SETTINGS":60,"./modules/Utils":61,"deep-object-diff":14,"eventemitter3":18,"lodash":22,"url":8}],57:[function(require,module,exports){
 const WebSocket = require('ws');
+const WebRTC = require('wrtc');
 const EventEmitter = require('eventemitter3');
 const { encode, decode } = require('msgpack-lite');
 const ClientConnection = require('./ClientConnection');
@@ -24448,11 +24667,13 @@ class Networker {
 		this.connectionsMade = 0;
 		this.getState = settings.getState;
 		this.getInitialData = settings.getInitialData || (() => {});
+		this.createRTCPeerConnection = null;
 
-		this.attachConnectionHandlers();
+		this.attachServerHandlers();
+		this.attachEventHandlers();
 	}
 
-	attachConnectionHandlers() {
+	attachServerHandlers() {
 		this.wsServer.on('connection', ws => {
 			this.connectionsMade++;
 			let clientID = Number(this.connectionsMade);
@@ -24464,6 +24685,30 @@ class Networker {
 			});
 		});
 
+		this.createRTCPeerConnection = async (description) => {
+			this.connectionsMade++;
+			let clientID = Number(this.connectionsMade);
+			this.connections[clientID] = new ClientConnection({
+				clientID,
+				connection: new WebRTC.RTCPeerConnection(),
+				emitter: this.emitter,
+				isWebSocket: false
+			});
+
+			const clientConnection = this.connections[clientID].connection;
+
+			await clientConnection.setRemoteDescription(description);
+			let answer = await clientConnection.createAnswer();
+			await clientConnection.setLocalDescription(answer);
+
+			return {
+				clientID: clientID,
+				description: clientConnection.localDescription
+			};
+		};
+	}
+
+	attachEventHandlers() {
 		this.emitter.on('client_message', (client, data) => {
 			let blob = decode(data);
 			let event = Utils.decompressNetworkEvent(blob);
@@ -24500,6 +24745,15 @@ class Networker {
 		});
 	}
 
+	async exchangeICECandiatesWithConnection(candidate, clientID) {
+		// console.log(candidate, clientID);
+		const connection = this.connections[clientID];
+		if(!connection) throw "Invalid Client ID";
+		if(connection.isWebSocket) throw "Client is using WebSockets";
+		let serverCandidate = await connection.exchangeICECandidates(candidate);
+		return serverCandidate;
+	}
+
 	addCompressor(data) {
 		let keyLength = Object.keys(this.compressionKeys).length;
 		this.compressionKeys[data.type] = keyLength;
@@ -24529,7 +24783,7 @@ class Networker {
 }
 
 module.exports = Networker;
-},{"./ClientConnection":53,"./modules/ObjectCompressor":59,"./modules/SETTINGS":60,"./modules/Utils":61,"eventemitter3":18,"msgpack-lite":24,"ws":52}],58:[function(require,module,exports){
+},{"./ClientConnection":53,"./modules/ObjectCompressor":59,"./modules/SETTINGS":60,"./modules/Utils":61,"eventemitter3":18,"msgpack-lite":23,"wrtc":51,"ws":52}],58:[function(require,module,exports){
 const EthermerisManager = require('./EthermerisManager');
 const EthermerisServer = require('./EthermerisServer');
 const EthermerisClient = require('./EthermerisClient');
@@ -24613,6 +24867,15 @@ Utils.fullDiff = (obj1, obj2) => {
 	return _.merge({}, splitDiff.added, splitDiff.deleted, splitDiff.updated);
 }
 
+Utils.waitUntil = (boolFunc, ms=100) => new Promise(resolve => {
+	let interval = setInterval(() => {
+		if(boolFunc()) {
+			clearInterval(interval);
+			resolve(true);
+		}
+	}, ms);
+});
+
 module.exports = Utils;
-},{"deep-object-diff":14,"lodash":23}]},{},[58])(58)
+},{"deep-object-diff":14,"lodash":22}]},{},[58])(58)
 });

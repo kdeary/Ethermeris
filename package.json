@@ -13,9 +13,10 @@
     "url": "git+https://github.com/kdeary/ethermeris.git"
   },
   "keywords": [
-    "game",
-    "engine",
-    "scratch"
+    "real-time",
+    "state",
+    "management",
+    "networker"
   ],
   "author": "kdeary",
   "license": "MIT",
@@ -26,9 +27,9 @@
   "dependencies": {
     "deep-object-diff": "^1.1.0",
     "eventemitter3": "^4.0.7",
-    "is-plain-object": "^5.0.0",
     "lodash": "^4.17.21",
     "msgpack-lite": "^0.1.26",
+    "wrtc": "^0.4.7",
     "ws": "^7.4.4"
   },
   "devDependencies": {

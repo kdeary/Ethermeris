@@ -14,7 +14,8 @@
 		<script type="text/javascript">
 			let userName = prompt("Username:");
 			let client = new Ethermeris.Client({
-				pathname: "/main",
+				verbose: true,
+				serverID: "main",
 				getInitialData: () => {
 					return {
 						name: userName

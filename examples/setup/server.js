@@ -8,17 +8,17 @@ const PORT = 3000;
 const app = express();
 const httpServer = http.Server(app);
 
-// const manager = new Ethermeris.Manager({
-// 	httpServer: httpServer
-// });
+const manager = new Ethermeris.Manager({
+	httpServer: httpServer
+});
 
-const server = new Ethermeris.Server({
+const server = manager.createServer({
+	serverID: "main",
 	stateSchema: {
 		counter: 0,
 		clients: {}
 	}
 });
-server.attachToServer('main', httpServer);
 
 server.on('connection', (client, metadata) => {
 	server.setState(state => {
