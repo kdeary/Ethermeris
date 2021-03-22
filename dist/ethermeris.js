@@ -24221,6 +24221,12 @@ class EthermerisClient {
 		this.serverID = settings.serverID || "";
 		this.verboseLogger = settings.verbose || false;
 
+		this.forceWebSockets = settings.forceWebSockets || false;
+
+		this.peerConnectionSettings = {
+			ordered: settings.ordered || false
+		};
+
 		this.iceCandidateReceived = false;
 		
 		this.signalServerRoute = settings.signalServerRoute || "/signal";
@@ -24230,7 +24236,7 @@ class EthermerisClient {
 	}
 
 	async init() {
-		if(window.RTCPeerConnection) {
+		if(window.RTCPeerConnection && !this.forceWebSockets) {
 			let webRTCConnected = await this.initWebRTC().catch(e => {
 				console.error("Error connecting using WebRTC: ", e);
 				return false;
@@ -24243,6 +24249,7 @@ class EthermerisClient {
 				await this.initWebSockets();
 			}
 		} else {
+			console.warn("Falling back to WebSockets...");
 			await this.initWebSockets();
 		}
 
@@ -24252,7 +24259,7 @@ class EthermerisClient {
 	async initWebRTC() {
 		this._log("Starting WebRTC peer connection");
 		// Create the connection and data channel
-		this.peerConnection = new RTCPeerConnection();
+		this.peerConnection = new RTCPeerConnection(this.peerConnectionSettings);
 		this.dataChannel = this.peerConnection.createDataChannel("data");
 		this.binaryType = "blob";
 
@@ -24566,6 +24573,9 @@ class EthermerisServer {
 		this.serverID = settings.serverID;
 		this.stateSchema = settings.stateSchema;
 		this._state = { ...(this.stateSchema) };
+		this.settings = {
+			maxMessagesPerSecond: settings.maxMessagesPerSecond || 75
+		};
 
 		this.emitter = new EventEmitter();
 		this.networker = new Networker({

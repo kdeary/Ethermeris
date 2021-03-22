@@ -15,6 +15,9 @@ class EthermerisServer {
 		this.serverID = settings.serverID;
 		this.stateSchema = settings.stateSchema;
 		this._state = { ...(this.stateSchema) };
+		this.settings = {
+			maxMessagesPerSecond: settings.maxMessagesPerSecond || 75
+		};
 
 		this.emitter = new EventEmitter();
 		this.networker = new Networker({
