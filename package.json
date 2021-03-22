@@ -10,23 +10,29 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/raikutro/ethermeris.git"
+    "url": "git+https://github.com/kdeary/ethermeris.git"
   },
   "keywords": [
     "game",
     "engine",
     "scratch"
   ],
-  "author": "raikutro",
+  "author": "kdeary",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/raikutro/ethermeris/issues"
+    "url": "https://github.com/kdeary/ethermeris/issues"
   },
-  "homepage": "https://github.com/raikutro/ethermeris#readme",
+  "homepage": "https://github.com/kdeary/ethermeris#readme",
   "dependencies": {
-    
+    "deep-object-diff": "^1.1.0",
+    "eventemitter3": "^4.0.7",
+    "is-plain-object": "^5.0.0",
+    "lodash": "^4.17.21",
+    "msgpack-lite": "^0.1.26",
+    "ws": "^7.4.4"
   },
   "devDependencies": {
-    "browserify": "^17.0.0"
+    "browserify": "^17.0.0",
+    "express": "^4.17.1"
   }
 }

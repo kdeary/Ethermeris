@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Real-time Counter</title>
+	</head>
+	<body>
+		<p>Counter: <span id="counter">-</span></p>
+		<ul id="clients">
+			
+		</ul>
+		<button id="resetbtn">Reset Counter</button>
+
+		<script type="text/javascript" src="/dist/ethermeris.js"></script>
+		<script type="text/javascript">
+			let userName = prompt("Username:");
+			let client = new Ethermeris.Client({
+				pathname: "/main",
+				getInitialData: () => {
+					return {
+						name: userName
+					}
+				}
+			});
+
+			client.init();
+
+			const counterElem = document.getElementById('counter');
+			const clientsElem = document.getElementById('clients');
+			const resetBtnElem = document.getElementById('resetbtn');
+
+			client.on('connected', (initialState, initialData) => {
+				console.log("Initial Event", initialState, initialData);
+
+				render(initialState);
+			});
+
+			client.on('state_update', (newState, partialState, oldState) => {
+				render(newState);
+			});
+
+			resetBtnElem.onclick = () => {
+				client.sendEvent('reset_counter');
+			}
+
+			function render(state) {
+				counterElem.innerText = state.counter;
+				clientsElem.innerHTML = "";
+
+				clientsElem.innerHTML = Object.values(state.clients).map(a => `<li>${a.name}</li>`).join("");
+			}
+
+			document.addEventListener('beforeunload', () => {
+				client.destroy();
+			});
+		</script>
+	</body>
+</html>
