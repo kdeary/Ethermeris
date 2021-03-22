@@ -1,2 +1,2 @@
 # Ethermeris
-Simple & Blazing Fast Socket Networking Framework for Node.js
+Simple & Fast Real-time State Management Networking Framework for Node.js
