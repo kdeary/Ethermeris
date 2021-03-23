@@ -22832,6 +22832,7 @@ class EthermerisClient {
 			this.responses[event.data[0]] = event.data[1];
 		} else if(event.name === SETTINGS.EVENTS.DISCONNECTION_REASON) {
 			this._log("Disconnection Reason: " + event.data[0]);
+			this.emitter.emit('disconnection', event.data[0]);
 		} else {
 			this.emitter.emit(event.name, ...(event.data));
 		}
@@ -22839,7 +22840,7 @@ class EthermerisClient {
 
 	emitStartData(initialState, initialData) {
 		this.state = initialState;
-		this.emitter.emit('connected', initialState, initialData);
+		this.emitter.emit('connection', initialState, initialData);
 	}
 
 	handlePartialState(partialState) {
@@ -22976,8 +22977,9 @@ Utils.waitUntil = (boolFunc, ms=100) => new Promise(resolve => {
 });
 
 Utils.peerSettingsBuilder = (settings={}) => ({
-	ordered: settings.ordered || false,
-	iceServers: settings.iceServers || SETTINGS.ICE_SERVERS
+	ordered: false,
+	iceServers: SETTINGS.ICE_SERVERS,
+	...settings
 });
 
 module.exports = Utils;

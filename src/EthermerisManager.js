@@ -6,6 +6,12 @@ const Utils = require('./modules/Utils');
 
 let ethermerisClientScript = fs.readFileSync(path.join(__dirname, '..', 'dist', 'ethermeris.js'));
 
+/**
+ * The Ethermeris Manager. This class holds multiple servers and automatically routes clients to specific servers.
+ * Handles WebSocket upgrades, WebRTC Signalling, and ICE Candidate exchanges. Also hosts the client library file.
+ * @class EthermerisManager
+ * @param {ManagerSettings} settings - Ethermeris Manager Settings
+ */
 class EthermerisManager {
 	constructor(settings) {
 		this.httpServer = settings.httpServer || null;
@@ -88,10 +94,13 @@ class EthermerisManager {
 		});
 	}
 
+	/**
+	 * Creates a server and attaches it to this manager.
+	 * @param  {ServerSettings} settings - The Ethermeris Server Configuration
+	 * @return {EthermerisServer}
+	 */
 	createServer(settings) {
-		let serverID = Utils.makeID(5);
 		const server = new EthermerisServer({
-			serverID,
 			...(settings)
 		});
 
@@ -100,11 +109,15 @@ class EthermerisManager {
 		return server;
 	}
 
+	/**
+	 * Attaches an existing server to this manager.
+	 * @param  {EthermerisServer} server - The Ethermeris server to attach
+	 * @return {String|Number} Returns the server's ID
+	 */
 	attach(server) {
-		let serverID = server.serverID || (server.serverID = Utils.makeID(5));
-		this.servers[serverID] = server;
+		this.servers[server.serverID] = server;
 
-		return serverID;
+		return server.serverID;
 	}
 }
 

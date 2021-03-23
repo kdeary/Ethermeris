@@ -4,6 +4,12 @@ const { encode, decode } = require('msgpack-lite');
 const SETTINGS = require('./modules/SETTINGS');
 const Utils = require('./modules/Utils');
 
+/**
+ * The Ethermeris Client. This class contains WebSocket/WebRTC connections, an event emitter, the local state, and responders.
+ * It is not meant to be used bare. Use the Manager to create servers instead.
+ * @class EthermerisClient
+ * @param {ClientSettings} settings - Ethermeris Client Settings
+ */
 class EthermerisClient {
 	constructor(settings) {
 		this.state = {};
@@ -14,14 +20,14 @@ class EthermerisClient {
 		this.peerConnection = null;
 		this.dataChannel = null;
 		this.pingInterval = null;
-		this.serverID = settings.serverID || "";
+		this.serverID = settings.serverID || "main";
 		this.verboseLogger = settings.verbose || false;
 		this.responders = {};
 		this.responses = {};
 
 		this.forceWebSockets = settings.forceWebSockets || false;
 
-		this.peerConnectionSettings = Utils.peerSettingsBuilder(settings);
+		this.peerConnectionSettings = Utils.peerSettingsBuilder(settings.peerSettings);
 
 		this.iceCandidateReceived = false;
 		
@@ -235,6 +241,7 @@ class EthermerisClient {
 			this.responses[event.data[0]] = event.data[1];
 		} else if(event.name === SETTINGS.EVENTS.DISCONNECTION_REASON) {
 			this._log("Disconnection Reason: " + event.data[0]);
+			this.emitter.emit('disconnection', event.data[0]);
 		} else {
 			this.emitter.emit(event.name, ...(event.data));
 		}
@@ -242,7 +249,7 @@ class EthermerisClient {
 
 	emitStartData(initialState, initialData) {
 		this.state = initialState;
-		this.emitter.emit('connected', initialState, initialData);
+		this.emitter.emit('connection', initialState, initialData);
 	}
 
 	handlePartialState(partialState) {

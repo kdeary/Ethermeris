@@ -6,7 +6,9 @@
   "scripts": {
     "test": "node src/index.js",
     "build": "browserify ./src/client_entry.js --standalone EthermerisClient -o ./dist/ethermeris.js",
-    "watch": "watchify ./src/client_entry.js --standalone EthermerisClient -o ./dist/ethermeris.js -v"
+    "watch": "watchify ./src/client_entry.js --standalone EthermerisClient -o ./dist/ethermeris.js -v",
+    "docs": "documentation serve ./src/index.js -f html",
+    "watch-docs": "documentation serve --watch ./src/index.js -f html"
   },
   "repository": {
     "type": "git",
@@ -37,6 +39,7 @@
   },
   "devDependencies": {
     "browserify": "^17.0.0",
+    "documentation": "^13.2.0",
     "express": "^4.17.1"
   }
 }

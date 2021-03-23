@@ -75,7 +75,6 @@ setInterval(() => {
 	// console.log(server.getState());
 }, 1000);
 
-require('../includeEthermerisClient')(app);
 app.use('/', express.static(path.join(__dirname)));
 
 httpServer.listen(PORT, function(){

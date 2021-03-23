@@ -58,8 +58,9 @@ Utils.waitUntil = (boolFunc, ms=100) => new Promise(resolve => {
 });
 
 Utils.peerSettingsBuilder = (settings={}) => ({
-	ordered: settings.ordered || false,
-	iceServers: settings.iceServers || SETTINGS.ICE_SERVERS
+	ordered: false,
+	iceServers: SETTINGS.ICE_SERVERS,
+	...settings
 });
 
 module.exports = Utils;
