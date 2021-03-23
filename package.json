@@ -5,8 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "test": "node src/index.js",
-    "build": "browserify ./src/index.js --standalone Ethermeris -o ./dist/ethermeris.js",
-    "watch": "watchify ./src/index.js --standalone Ethermeris -o ./dist/ethermeris.js -v"
+    "build": "browserify ./src/client_entry.js --standalone EthermerisClient -o ./dist/ethermeris.js",
+    "watch": "watchify ./src/client_entry.js --standalone EthermerisClient -o ./dist/ethermeris.js -v"
   },
   "repository": {
     "type": "git",

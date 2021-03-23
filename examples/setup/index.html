@@ -11,10 +11,10 @@
 		<button id="resetbtn">Reset Counter</button>
 		<button id="convertbtn">Server-Side Base64 Converter</button>
 
-		<script type="text/javascript" src="/dist/ethermeris.js"></script>
+		<script type="text/javascript" src="/ethermeris/ethermeris.js"></script>
 		<script type="text/javascript">
 			let userName = prompt("Username:");
-			let client = new Ethermeris.Client({
+			let client = new EthermerisClient({
 				verbose: true,
 				serverID: "main",
 				getInitialData: () => {

@@ -25,8 +25,7 @@ class EthermerisClient {
 
 		this.iceCandidateReceived = false;
 		
-		this.signalServerRoute = settings.signalServerRoute || "/signal";
-		this.candidateServerRoute = settings.candidateServerRoute || "/ice_candidate";
+		this.serverRoute = settings.serverRoute || "/ethermeris";
 
 		this.getInitialData = settings.getInitialData || (() => {});
 	}
@@ -71,7 +70,7 @@ class EthermerisClient {
 		this._log("Local description has been set");
 
 		// Signal for the servers description
-		let response = await fetch(this.signalServerRoute, {
+		let response = await fetch(this.serverRoute + "/signal", {
 			method: "POST",
 			headers: {
 				'Content-Type': 'application/json'
@@ -95,7 +94,7 @@ class EthermerisClient {
 
 	async initWebSockets() {
 		this.socket = new WebSocket(
-			(location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ether_" + this.serverID
+			(location.protocol === "https:" ? "wss://" : "ws://") + location.host + this.serverRoute + "/ether_" + this.serverID
 		);
 		this.attachSocketHandlers();
 
@@ -160,7 +159,7 @@ class EthermerisClient {
 			if(candidate && candidate.protocol === "udp" && candidate.component === "rtp"){
 				await Utils.waitUntil(() => this.id !== null);
 
-				let response = await fetch(this.candidateServerRoute, {
+				let response = await fetch(this.serverRoute + "/ice_candidate", {
 					method: "POST",
 					headers: {
 						'Content-Type': 'application/json'

@@ -1,12 +1,15 @@
+const fs = require('fs');
+const path = require('path');
 const url = require('url');
 const EthermerisServer = require('./EthermerisServer');
 const Utils = require('./modules/Utils');
 
+let ethermerisClientScript = fs.readFileSync(path.join(__dirname, '..', 'dist', 'ethermeris.js'));
+
 class EthermerisManager {
 	constructor(settings) {
 		this.httpServer = settings.httpServer || null;
-		this.signalServerRoute = settings.signalServerRoute || "/signal";
-		this.candidateServerRoute = settings.candidateServerRoute || "/ice_candidate";
+		this.serverRoute = settings.serverRoute || "/ethermeris";
 
 		this.servers = {};
 
@@ -14,7 +17,7 @@ class EthermerisManager {
 
 		this.httpServer.on('upgrade', (request, socket, head) => {
 			const pathname = url.parse(request.url).pathname;
-			const serverID = pathname.replace("/ether_", "");
+			const serverID = pathname.replace(this.serverRoute + "/ether_", "");
 
 			if(this.servers[serverID]) {
 				const wsServer = this.servers[serverID].getWebSocketServer();
@@ -29,8 +32,8 @@ class EthermerisManager {
 		this.httpServer.on('request', (request, response) => {
 			const { method, url } = request;
 
-			if(method === "POST" && url === this.signalServerRoute) {
-				response.writeHead(200, {'Content-Type': 'application/json'})
+			if(method === "POST" && url === this.serverRoute + "/signal") {
+				response.writeHead(200, {'Content-Type': 'application/json'});
 
 				let body = [];
 				request.on('error', (err) => {
@@ -53,8 +56,8 @@ class EthermerisManager {
 
 					response.end(JSON.stringify(description));
 				});
-			} else if(method === "POST" && url === this.candidateServerRoute) {
-				response.writeHead(200, {'Content-Type': 'application/json'})
+			} else if(method === "POST" && url === this.serverRoute + "/ice_candidate") {
+				response.writeHead(200, {'Content-Type': 'application/json'});
 
 				let body = [];
 				request.on('error', (err) => {
@@ -78,6 +81,9 @@ class EthermerisManager {
 
 					response.end(JSON.stringify(candidate));
 				});
+			} else if(method === "GET" && url === this.serverRoute + "/ethermeris.js") {
+				response.writeHead(200, {'Content-Type': 'text/javascript'});
+				response.end(ethermerisClientScript);
 			}
 		});
 	}
