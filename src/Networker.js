@@ -94,10 +94,19 @@ class Networker {
 						this.getState(),
 						initialData
 					);
-					// Send client connection and client metadata
+					
+					/**
+					 * Connection Event.
+					 * @event EthermerisServer#connection
+					 * @param {ClientConnection} client - The connection of the client that just connected.
+					 * @param {Object} clientRequestData - Object containing the data that the client sent over in the connection request.
+					 */
 					this.serverEmitter.emit('connection', client, clientRequestData);
 				} else {
-					client.destroy("Invalid Initial Data");
+					client.destroy(Utils.generateNetworkError(
+						SETTINGS.DISCONNECTION_CODES.INVALID_INITIAL_DATA,
+						"Invalid Initial Data"
+					));
 				}
 
 				return;
@@ -131,6 +140,11 @@ class Networker {
 		});
 
 		this.emitter.on('client_disconnected', client => {
+			/**
+			 * Disconnection Event.
+			 * @event EthermerisServer#disconnection
+			 * @param {ClientConnection} client - The dead connection of the client that just disconnected.
+			 */
 			this.serverEmitter.emit('disconnection', client);
 			delete this.connections[client.id];
 		});
@@ -163,20 +177,23 @@ class Networker {
 		return this.compressors[keyLength];
 	}
 
-	emitToAll(name, data) {
+	emitToAll(name, ...datas) {
 		let connections = Object.values(this.connections);
 
 		connections.forEach(conn => {
 			if(!conn.activated) return;
 
-			let eventData = data;
-			if(typeof data === "function") eventData = data(conn);
+			let eventDatas = [];
+			datas.forEach(data => {
+				if(typeof data === "function") return eventDatas.push(data(conn));
+				eventDatas.push(data);
+			});
 			// console.log(eventData);
 
-			conn.emit(name, eventData);
+			conn.emit(name, ...eventDatas);
 		});
 
-		return;
+		return true;
 	}
 }
 

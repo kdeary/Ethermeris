@@ -6,7 +6,7 @@ const Utils = require('./modules/Utils');
 
 /**
  * The Ethermeris Client. This class contains WebSocket/WebRTC connections, an event emitter, the local state, and responders.
- * It is not meant to be used bare. Use the Manager to create servers instead.
+ * This class is only meant to be used on the browser to connect with Ethermeris servers.
  * @class EthermerisClient
  * @param {ClientSettings} settings - Ethermeris Client Settings
  */
@@ -36,6 +36,10 @@ class EthermerisClient {
 		this.getInitialData = settings.getInitialData || (() => {});
 	}
 
+	/**
+	 * Initiates the client by choosing the best connection method.
+	 * @return {EthermerisClient}
+	 */
 	async init() {
 		this._log("Initiated");
 
@@ -109,6 +113,10 @@ class EthermerisClient {
 		return true;
 	}
 
+	/**
+	 * Destroys this instance and terminates all connections.
+	 * @return {[type]} [description]
+	 */
 	destroy() {
 		clearInterval(this.pingInterval);
 		this.emitter = null;
@@ -134,18 +142,43 @@ class EthermerisClient {
 		}
 	}
 
-	on(...args) {
-		this.emitter.on(...args);
+	/**
+	 * Adds an event handler to the emitter
+	 * @param  {String|Number} eventName - Name of the event to handle.
+	 * @param  {Function} listener - Event listener to add.
+	 * @return {EventEmitter}
+	 */
+	on(eventName, listener) {
+		return this.emitter.on(eventName, listener);
 	}
 
-	off(...args) {
-		this.emitter.off(...args);
+	/**
+	 * Removes an event handler to the emitter
+	 * @param  {String|Number} eventName - Name of the event to remove.
+	 * @param  {Function} listener - Event listener to remove.
+	 * @return {EventEmitter}
+	 */
+	off(eventName, listener) {
+		return this.emitter.off(eventName, listener);
 	}
 
-	once(...args) {
-		this.emitter.once(...args);
+	/**
+	 * Adds an ephemeral event handler to the emitter that is removed once it's called.
+	 * @param  {String|Number} eventName - Name of the event to handle.
+	 * @param  {Function} listener - Event listener to add ephemerally.
+	 * @return {EventEmitter}
+	 */
+	once(eventName, listener) {
+		return this.emitter.once(eventName, listener);
 	}
 
+	/**
+	 * Adds an event responder. It's like an event handler,
+	 * except only one handler per event and that handler can return a value.
+	 * @param  {String|Number} eventName - Name of the event to respond to.
+	 * @param  {Function} listener - Event responder listener to add.
+	 * @return {EventEmitter}
+	 */
 	respond(eventName, callback) {
 		this.responders[eventName] = callback;
 		return callback;
@@ -204,7 +237,9 @@ class EthermerisClient {
 	onConnectionOpen(){
 		this._log("Connection open");
 		this.ready = true;
+
 		this.emit(SETTINGS.EVENTS.CLIENT_CONNECT_REQUEST, this.getInitialData());
+
 		this.pingInterval = setInterval(() => {
 			this.emit(SETTINGS.EVENTS.PING);
 		}, SETTINGS.HEARTBEAT_PING_INTERVAL);
@@ -240,8 +275,15 @@ class EthermerisClient {
 		} else if(event.name === SETTINGS.EVENTS.RESPONSE) {
 			this.responses[event.data[0]] = event.data[1];
 		} else if(event.name === SETTINGS.EVENTS.DISCONNECTION_REASON) {
-			this._log("Disconnection Reason: " + event.data[0]);
-			this.emitter.emit('disconnection', event.data[0]);
+			this._log("Disconnection Reason: " + event.data[0] + " (" + event.data[1] + ")");
+
+			/**
+			 * Disconnection Event.
+			 * @event EthermerisClient#disconnection
+			 * @param {String} disconnectionReason - The reason for disconnection.
+			 * @param {Number} disconnectionCode - The disconnection code.
+			 */
+			this.emitter.emit('disconnection', event.data[0], event.data[1]);
 		} else {
 			this.emitter.emit(event.name, ...(event.data));
 		}
@@ -249,6 +291,13 @@ class EthermerisClient {
 
 	emitStartData(initialState, initialData) {
 		this.state = initialState;
+
+		/**
+		 * Connection Event.
+		 * @event EthermerisClient#connection
+		 * @param {Object} initialState - The entire state object of the server.
+		 * @param {Object} initialData - An object containing custom initial data
+		 */
 		this.emitter.emit('connection', initialState, initialData);
 	}
 
@@ -261,6 +310,12 @@ class EthermerisClient {
 		if(this.emitter) this.emitter.emit('state_update', _.cloneDeep(this.state), partialState, oldState);
 	}
 
+	/**
+	 * Sends an event to the server.
+	 * @param  {String|Number} name - The event name
+	 * @param  {...Object} data - The event data
+	 * @return {Boolean} Returns true on success, false on fail.
+	 */
 	emit(name, ...data) {
 		if(!this.ready) return false;
 
@@ -278,6 +333,12 @@ class EthermerisClient {
 		return false;
 	}
 
+	/**
+	 * Sends a request to the server and waits for a response.
+	 * @param  {String|Number} eventName - The name of the event.
+	 * @param  {...Object} data - The event data
+	 * @return {Promise} Returns a promise that holds the response from the server.
+	 */
 	async request(eventName, ...data) {
 		const requestID = _.random(0, 2 ** 14);
 		if(!this.emit(SETTINGS.EVENTS.REQUEST, eventName, requestID, ...data)) return;

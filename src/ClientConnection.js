@@ -3,6 +3,11 @@ const { encode, decode } = require('msgpack-lite');
 const SETTINGS = require('./modules/SETTINGS');
 const Utils = require('./modules/Utils');
 
+/**
+ * A Server's Client Connection. This class represents a connection to a client on the server.
+ * The server can use this class to send events and requests to the client. Not meant to be used bare.
+ * @class ClientConnection
+ */
 class ClientConnection {
 	constructor({
 		clientID,
@@ -49,7 +54,12 @@ class ClientConnection {
 			};
 
 			this.dataChannel.onopen = e => {};
-			this.dataChannel.onclose = () => this.destroy("Data channel failure");
+			this.dataChannel.onclose = () => this.destroy(
+				Utils.generateNetworkError(
+					SETTINGS.DISCONNECTION_CODES.CONNECTION_FAILURE,
+					"Data channel failure"
+				)
+			);
 		};
 	}
 
@@ -58,7 +68,12 @@ class ClientConnection {
 			this.onMessageData(message);
 		});
 
-		this.connection.on('close', () => this.destroy("Socket failure"));
+		this.connection.on('close', () => this.destroy(
+			Utils.generateNetworkError(
+				SETTINGS.DISCONNECTION_CODES.CONNECTION_FAILURE,
+				"Socket failure"
+			)
+		));
 	}
 
 	onMessageData(message) {
@@ -71,7 +86,10 @@ class ClientConnection {
 			this.messagesSinceLastSecond > this.settings.maxMessagesPerSecond &&
 			!hasSecondPastYet
 		) {
-			this.destroy("Message threshold broken");
+			this.destroy(Utils.generateNetworkError(
+				SETTINGS.DISCONNECTION_CODES.THROTTLER,
+				"Message threshold broken"
+			));
 			return;
 		}
 
@@ -96,7 +114,10 @@ class ClientConnection {
 	resetAlive() {
 		clearTimeout(this.lastPingTimeout);
 		this.lastPingTimeout = setTimeout(() => {
-			this.destroy("Timeout");
+			this.destroy(Utils.generateNetworkError(
+				SETTINGS.DISCONNECTION_CODES.TIMEOUT,
+				"Timed out"
+			));
 		}, this.settings.clientTimeout + 1000);
 	}
 
@@ -104,12 +125,23 @@ class ClientConnection {
 		this.activated = true;
 	}
 
+	/**
+	 * Destroys this instance by closing all connections and signalling the parent server to delete it.
+	 * @async
+	 * @param  {String} [reason="No reason specified."] - The reason for disconnection.
+	 * @return {Boolean} Returns true on success false on fail.
+	 */
 	async destroy(reason="No reason specified.") {
 		// console.log("destroying", this.id, reason);
-		this.emit(SETTINGS.EVENTS.DISCONNECTION_REASON, reason);
+		let destroyReason = typeof reason === "string" ? {
+			code: SETTINGS.DISCONNECTION_CODES.NO_REASON,
+			text: reason
+		} : reason;
+
+		this.emit(SETTINGS.EVENTS.DISCONNECTION_REASON, destroyReason.code, destroyReason.text);
 		await Utils.wait(100);
 
-		if(!this.activated) return;
+		if(!this.activated) return false;
 		clearTimeout(this.lastPingTimeout);
 
 		if(this.isWebSocket) {
@@ -123,8 +155,16 @@ class ClientConnection {
 
 		this.activated = false;
 		this.emitter.emit('client_disconnected', this);
+
+		return true;
 	}
 
+	/**
+	 * Emits an event to the client.
+	 * @param  {String|Number} name - The event name
+	 * @param  {...Object} data - The event data
+	 * @return {Boolean} Returns true on success, false on failure.
+	 */
 	emit(name, ...data) {
 		if(!this.activated) return false;
 
@@ -144,6 +184,12 @@ class ClientConnection {
 		return true;
 	}
 
+	/**
+	 * Sends a request to the client and waits for a response.
+	 * @param  {String|Number} eventName - The name of the event.
+	 * @param  {...Object} data - The event data
+	 * @return {Promise} Returns a promise that holds the response from the client.
+	 */
 	async request(eventName, ...data) {
 		const requestID = _.random(0, 2 ** 14);
 		if(!this.emit(SETTINGS.EVENTS.REQUEST, eventName, requestID, ...data)) return;

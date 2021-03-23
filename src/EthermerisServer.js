@@ -42,11 +42,19 @@ class EthermerisServer {
 	}
 
 	/**
-	 * Obtains the networker's WebSocket server
+	 * Obtains the server's WebSocket server
 	 * @return {WebSocketServer}
 	 */
 	getWebSocketServer() {
 		return this.networker.wsServer;
+	}
+
+	/**
+	 * Returns all clients connected to the server
+	 * @return {Object.<ClientID, ClientConnection>}
+	 */
+	getClients() {
+		return this.networker.connections;
 	}
 
 	/**
@@ -55,6 +63,16 @@ class EthermerisServer {
 	 */
 	addCompressor(settings) {
 		return this.networker.addCompressor(settings);
+	}
+
+	/**
+	 * Emits an event to all connected clients.
+	 * @param  {String|Number} name - The event name
+	 * @param  {...Object|EthermerisServer~clientModifierCallback} data - The event data. Can also be a callback that returns event data.
+	 * @return {Boolean} Returns true on success, false on failure.
+	 */
+	emitToAll(name, ...data) {
+		return this.networker.emitToAll(name, ...data);
 	}
 
 	/**
@@ -78,7 +96,7 @@ class EthermerisServer {
 	}
 
 	/**
-	 * Adds an ephemeral event handler to the emitter
+	 * Adds an ephemeral event handler to the emitter that is removed once it's called.
 	 * @param  {String|Number} eventName - Name of the event to handle.
 	 * @param  {Function} listener - Event listener to add ephemerally.
 	 * @return {EventEmitter}

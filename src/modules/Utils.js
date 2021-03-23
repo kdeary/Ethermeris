@@ -57,6 +57,11 @@ Utils.waitUntil = (boolFunc, ms=100) => new Promise(resolve => {
 	}, ms);
 });
 
+Utils.generateNetworkError = (code, text) => ({
+	code: code || SETTINGS.DISCONNECTION_CODES.NO_REASON,
+	text: text || "..."
+});
+
 Utils.peerSettingsBuilder = (settings={}) => ({
 	ordered: false,
 	iceServers: SETTINGS.ICE_SERVERS,
