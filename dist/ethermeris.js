@@ -24103,7 +24103,8 @@ class ClientConnection {
 		clientID,
 		connection,
 		emitter,
-		isWebSocket
+		isWebSocket,
+		settings
 	}) {
 		this.id = clientID;
 		this.connection = connection;
@@ -24113,6 +24114,9 @@ class ClientConnection {
 		this.activated = false;
 		this.lastPingTimeout = null;
 		this.iceCandidate = null;
+		this.settings = settings;
+		this.messagesSinceLastSecond = 0;
+		this.nextSecondTimestamp = Date.now() + 1000;
 
 		this.resetAlive();
 
@@ -24152,6 +24156,25 @@ class ClientConnection {
 
 	onMessageData(message) {
 		// console.log("MESSAGE RECEIVED", this.id, message);
+		
+		this.messagesSinceLastSecond++;
+
+		const hasSecondPastYet = Date.now() >= this.nextSecondTimestamp;
+		if(
+			this.messagesSinceLastSecond > this.settings.maxMessagesPerSecond &&
+			!hasSecondPastYet
+		) {
+			this.destroy();
+			return;
+		}
+
+		// console.log(hasSecondPastYet, this.messagesSinceLastSecond, this.settings.maxMessagesPerSecond);
+
+		if(hasSecondPastYet) {
+			this.nextSecondTimestamp = Date.now() + 1000;
+			this.messagesSinceLastSecond = 0;
+		}
+
 		this.emitter.emit('client_message', this, message);
 		this.resetAlive();
 	}
@@ -24175,22 +24198,28 @@ class ClientConnection {
 	}
 
 	destroy() {
+		if(!this.activated) return;
+		clearTimeout(this.lastPingTimeout);
+
 		if(this.isWebSocket) {
 			this.connection.terminate();
 		} else {
-
+			this.dataChannel.close();
+			this.connection.close();
+			this.connection = null;
+			this.dataChannel = null;
 		}
 
 		this.activated = false;
 		this.emitter.emit('client_disconnected', this);
 	}
 
-	sendEvent(name, data) {
-		let event = Utils.compressNetworkEvent(name, data);
+	emit(name, ...data) {
+		let event = Utils.compressNetworkEvent(name, ...data);
 		let b = encode(event);
 		let ui32 = b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
 
-		// console.log()
+		// console.log(event);
 		if(this.isWebSocket) {
 			this.connection.send(ui32);
 		} else {
@@ -24307,6 +24336,7 @@ class EthermerisClient {
 	destroy() {
 		clearInterval(this.pingInterval);
 		this.emitter = null;
+		this.ready = false;
 
 		if(this.peerConnection){
 			this.dataChannel.close();
@@ -24366,6 +24396,8 @@ class EthermerisClient {
 				this.iceCandidateReceived = true;
 			}
 		});
+
+		this.dataChannel.addEventListener('close', () => this.onConnectionClose());
 	}
 
 	attachSocketHandlers() {
@@ -24382,22 +24414,29 @@ class EthermerisClient {
 	onConnectionOpen(){
 		this._log("Connection open");
 		this.ready = true;
-		this.sendEvent(SETTINGS.EVENTS.CLIENT_CONNECT_REQUEST, this.getInitialData());
+		this.emit(SETTINGS.EVENTS.CLIENT_CONNECT_REQUEST, this.getInitialData());
 		this.pingInterval = setInterval(() => {
-			this.sendEvent(SETTINGS.EVENTS.PING);
+			this.emit(SETTINGS.EVENTS.PING);
 		}, SETTINGS.HEARTBEAT_PING_INTERVAL);
+	}
+
+	onConnectionClose() {
+		this._log("Connection closed");
+		this.destroy();
 	}
 
 	async onMessageBlob(arrayBuffer) {
 		let data = decode(arrayBuffer);
 		let event = Utils.decompressNetworkEvent(data);
 
+		// console.log(event);
+
 		if(event.name === SETTINGS.EVENTS.INITIAL_DATA) {
 			this.emitStartData(event.data[0], event.data[1]);
 		} else if(event.name === SETTINGS.EVENTS.STATE_UPDATE) {
-			this.handlePartialState(event.data);
+			this.handlePartialState(event.data[0]);
 		} else {
-			this.emitter.emit(event.name, event.data);
+			this.emitter.emit(event.name, ...(event.data));
 		}
 	}
 
@@ -24415,10 +24454,10 @@ class EthermerisClient {
 		this.emitter.emit('state_update', _.cloneDeep(this.state), partialState, oldState);
 	}
 
-	sendEvent(name, data) {
+	emit(name, ...data) {
 		if(!this.ready) return false;
 
-		let event = Utils.compressNetworkEvent(name, data);
+		let event = Utils.compressNetworkEvent(name, ...data);
 		let blob = encode(event);
 
 		if(this.dataChannel){
@@ -24580,7 +24619,8 @@ class EthermerisServer {
 		this.emitter = new EventEmitter();
 		this.networker = new Networker({
 			emitter: this.emitter,
-			getState: () => this.getState()
+			getState: () => this.getState(),
+			settings: this.settings
 		});
 	}
 
@@ -24633,7 +24673,7 @@ class EthermerisServer {
 		if(Object.keys(diffs).length === 0) return this._state;
 
 		// Send diffs to clients
-		this.networker.sendEventToAll(SETTINGS.EVENTS.STATE_UPDATE, client => clientModifier(client, diffs));
+		this.networker.emitToAll(SETTINGS.EVENTS.STATE_UPDATE, client => clientModifier(client, diffs));
 
 		return this._state;
 	}
@@ -24678,6 +24718,7 @@ class Networker {
 		this.getState = settings.getState;
 		this.getInitialData = settings.getInitialData || (() => {});
 		this.createRTCPeerConnection = null;
+		this.serverSettings = settings.settings || {};
 
 		this.attachServerHandlers();
 		this.attachEventHandlers();
@@ -24691,7 +24732,8 @@ class Networker {
 				clientID,
 				connection: ws,
 				emitter: this.emitter,
-				isWebSocket: true
+				isWebSocket: true,
+				settings: this.buildClientConnectionSettings()
 			});
 		});
 
@@ -24702,7 +24744,8 @@ class Networker {
 				clientID,
 				connection: new WebRTC.RTCPeerConnection(),
 				emitter: this.emitter,
-				isWebSocket: false
+				isWebSocket: false,
+				settings: this.buildClientConnectionSettings()
 			});
 
 			const clientConnection = this.connections[clientID].connection;
@@ -24724,17 +24767,20 @@ class Networker {
 			let event = Utils.decompressNetworkEvent(blob);
 
 			if(event.name === SETTINGS.EVENTS.CLIENT_CONNECT_REQUEST) {
-				let initialData = this.getInitialData(event.data);
+				const clientRequestData = event.data[0];
+				let initialData = this.getInitialData(clientRequestData);
+				// console.log(clientRequestData, initialData);
 
 				// If the client shouldn't be kicked.
 				if(initialData !== false) {
 					this.connections[client.id].activate();
-					this.connections[client.id].sendEvent(
+					this.connections[client.id].emit(
 						SETTINGS.EVENTS.INITIAL_DATA,
-						[this.getState(), initialData]
+						this.getState(),
+						initialData
 					);
 					// Send client connection and client metadata
-					this.serverEmitter.emit('connection', client, event.data);
+					this.serverEmitter.emit('connection', client, clientRequestData);
 				} else {
 					this.connections[client.id].destroy();
 				}
@@ -24764,6 +24810,12 @@ class Networker {
 		return serverCandidate;
 	}
 
+	buildClientConnectionSettings() {
+		return {
+			maxMessagesPerSecond: this.serverSettings.maxMessagesPerSecond
+		}
+	}
+
 	addCompressor(data) {
 		let keyLength = Object.keys(this.compressionKeys).length;
 		this.compressionKeys[data.type] = keyLength;
@@ -24775,7 +24827,7 @@ class Networker {
 		return this.compressors[keyLength];
 	}
 
-	sendEventToAll(name, data) {
+	emitToAll(name, data) {
 		let connections = Object.values(this.connections);
 
 		connections.forEach(conn => {
@@ -24785,7 +24837,7 @@ class Networker {
 			if(typeof data === "function") eventData = data(conn);
 			// console.log(eventData);
 
-			conn.sendEvent(name, eventData);
+			conn.emit(name, eventData);
 		});
 
 		return;
@@ -24850,14 +24902,14 @@ Utils.mergeModifier = (objValue, srcValue, key, object, source, stack) => {
 	}
 };
 
-Utils.compressNetworkEvent = (event, data) => {
-	return [event, data];
+Utils.compressNetworkEvent = (event, ...data) => {
+	return [event, ...data];
 };
 
 Utils.decompressNetworkEvent = data => {
 	return {
 		name: data[0],
-		data: data[1]
+		data: data.slice(1)
 	};
 };
 

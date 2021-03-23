@@ -7,7 +7,8 @@ class ClientConnection {
 		clientID,
 		connection,
 		emitter,
-		isWebSocket
+		isWebSocket,
+		settings
 	}) {
 		this.id = clientID;
 		this.connection = connection;
@@ -17,6 +18,9 @@ class ClientConnection {
 		this.activated = false;
 		this.lastPingTimeout = null;
 		this.iceCandidate = null;
+		this.settings = settings;
+		this.messagesSinceLastSecond = 0;
+		this.nextSecondTimestamp = Date.now() + 1000;
 
 		this.resetAlive();
 
@@ -56,6 +60,25 @@ class ClientConnection {
 
 	onMessageData(message) {
 		// console.log("MESSAGE RECEIVED", this.id, message);
+		
+		this.messagesSinceLastSecond++;
+
+		const hasSecondPastYet = Date.now() >= this.nextSecondTimestamp;
+		if(
+			this.messagesSinceLastSecond > this.settings.maxMessagesPerSecond &&
+			!hasSecondPastYet
+		) {
+			this.destroy();
+			return;
+		}
+
+		// console.log(hasSecondPastYet, this.messagesSinceLastSecond, this.settings.maxMessagesPerSecond);
+
+		if(hasSecondPastYet) {
+			this.nextSecondTimestamp = Date.now() + 1000;
+			this.messagesSinceLastSecond = 0;
+		}
+
 		this.emitter.emit('client_message', this, message);
 		this.resetAlive();
 	}
@@ -79,22 +102,28 @@ class ClientConnection {
 	}
 
 	destroy() {
+		if(!this.activated) return;
+		clearTimeout(this.lastPingTimeout);
+
 		if(this.isWebSocket) {
 			this.connection.terminate();
 		} else {
-
+			this.dataChannel.close();
+			this.connection.close();
+			this.connection = null;
+			this.dataChannel = null;
 		}
 
 		this.activated = false;
 		this.emitter.emit('client_disconnected', this);
 	}
 
-	sendEvent(name, data) {
-		let event = Utils.compressNetworkEvent(name, data);
+	emit(name, ...data) {
+		let event = Utils.compressNetworkEvent(name, ...data);
 		let b = encode(event);
 		let ui32 = b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
 
-		// console.log()
+		// console.log(event);
 		if(this.isWebSocket) {
 			this.connection.send(ui32);
 		} else {

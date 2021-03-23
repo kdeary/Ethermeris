@@ -19,6 +19,7 @@ class Networker {
 		this.getState = settings.getState;
 		this.getInitialData = settings.getInitialData || (() => {});
 		this.createRTCPeerConnection = null;
+		this.serverSettings = settings.settings || {};
 
 		this.attachServerHandlers();
 		this.attachEventHandlers();
@@ -32,7 +33,8 @@ class Networker {
 				clientID,
 				connection: ws,
 				emitter: this.emitter,
-				isWebSocket: true
+				isWebSocket: true,
+				settings: this.buildClientConnectionSettings()
 			});
 		});
 
@@ -43,7 +45,8 @@ class Networker {
 				clientID,
 				connection: new WebRTC.RTCPeerConnection(),
 				emitter: this.emitter,
-				isWebSocket: false
+				isWebSocket: false,
+				settings: this.buildClientConnectionSettings()
 			});
 
 			const clientConnection = this.connections[clientID].connection;
@@ -65,17 +68,20 @@ class Networker {
 			let event = Utils.decompressNetworkEvent(blob);
 
 			if(event.name === SETTINGS.EVENTS.CLIENT_CONNECT_REQUEST) {
-				let initialData = this.getInitialData(event.data);
+				const clientRequestData = event.data[0];
+				let initialData = this.getInitialData(clientRequestData);
+				// console.log(clientRequestData, initialData);
 
 				// If the client shouldn't be kicked.
 				if(initialData !== false) {
 					this.connections[client.id].activate();
-					this.connections[client.id].sendEvent(
+					this.connections[client.id].emit(
 						SETTINGS.EVENTS.INITIAL_DATA,
-						[this.getState(), initialData]
+						this.getState(),
+						initialData
 					);
 					// Send client connection and client metadata
-					this.serverEmitter.emit('connection', client, event.data);
+					this.serverEmitter.emit('connection', client, clientRequestData);
 				} else {
 					this.connections[client.id].destroy();
 				}
@@ -105,6 +111,12 @@ class Networker {
 		return serverCandidate;
 	}
 
+	buildClientConnectionSettings() {
+		return {
+			maxMessagesPerSecond: this.serverSettings.maxMessagesPerSecond
+		}
+	}
+
 	addCompressor(data) {
 		let keyLength = Object.keys(this.compressionKeys).length;
 		this.compressionKeys[data.type] = keyLength;
@@ -116,7 +128,7 @@ class Networker {
 		return this.compressors[keyLength];
 	}
 
-	sendEventToAll(name, data) {
+	emitToAll(name, data) {
 		let connections = Object.values(this.connections);
 
 		connections.forEach(conn => {
@@ -126,7 +138,7 @@ class Networker {
 			if(typeof data === "function") eventData = data(conn);
 			// console.log(eventData);
 
-			conn.sendEvent(name, eventData);
+			conn.emit(name, eventData);
 		});
 
 		return;

@@ -40,7 +40,7 @@
 			});
 
 			resetBtnElem.onclick = () => {
-				client.sendEvent('reset_counter');
+				client.emit('reset_counter');
 			}
 
 			function render(state) {

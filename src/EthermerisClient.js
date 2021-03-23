@@ -103,6 +103,7 @@ class EthermerisClient {
 	destroy() {
 		clearInterval(this.pingInterval);
 		this.emitter = null;
+		this.ready = false;
 
 		if(this.peerConnection){
 			this.dataChannel.close();
@@ -162,6 +163,8 @@ class EthermerisClient {
 				this.iceCandidateReceived = true;
 			}
 		});
+
+		this.dataChannel.addEventListener('close', () => this.onConnectionClose());
 	}
 
 	attachSocketHandlers() {
@@ -178,22 +181,29 @@ class EthermerisClient {
 	onConnectionOpen(){
 		this._log("Connection open");
 		this.ready = true;
-		this.sendEvent(SETTINGS.EVENTS.CLIENT_CONNECT_REQUEST, this.getInitialData());
+		this.emit(SETTINGS.EVENTS.CLIENT_CONNECT_REQUEST, this.getInitialData());
 		this.pingInterval = setInterval(() => {
-			this.sendEvent(SETTINGS.EVENTS.PING);
+			this.emit(SETTINGS.EVENTS.PING);
 		}, SETTINGS.HEARTBEAT_PING_INTERVAL);
+	}
+
+	onConnectionClose() {
+		this._log("Connection closed");
+		this.destroy();
 	}
 
 	async onMessageBlob(arrayBuffer) {
 		let data = decode(arrayBuffer);
 		let event = Utils.decompressNetworkEvent(data);
 
+		// console.log(event);
+
 		if(event.name === SETTINGS.EVENTS.INITIAL_DATA) {
 			this.emitStartData(event.data[0], event.data[1]);
 		} else if(event.name === SETTINGS.EVENTS.STATE_UPDATE) {
-			this.handlePartialState(event.data);
+			this.handlePartialState(event.data[0]);
 		} else {
-			this.emitter.emit(event.name, event.data);
+			this.emitter.emit(event.name, ...(event.data));
 		}
 	}
 
@@ -211,10 +221,10 @@ class EthermerisClient {
 		this.emitter.emit('state_update', _.cloneDeep(this.state), partialState, oldState);
 	}
 
-	sendEvent(name, data) {
+	emit(name, ...data) {
 		if(!this.ready) return false;
 
-		let event = Utils.compressNetworkEvent(name, data);
+		let event = Utils.compressNetworkEvent(name, ...data);
 		let blob = encode(event);
 
 		if(this.dataChannel){

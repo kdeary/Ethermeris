@@ -22,7 +22,8 @@ class EthermerisServer {
 		this.emitter = new EventEmitter();
 		this.networker = new Networker({
 			emitter: this.emitter,
-			getState: () => this.getState()
+			getState: () => this.getState(),
+			settings: this.settings
 		});
 	}
 
@@ -75,7 +76,7 @@ class EthermerisServer {
 		if(Object.keys(diffs).length === 0) return this._state;
 
 		// Send diffs to clients
-		this.networker.sendEventToAll(SETTINGS.EVENTS.STATE_UPDATE, client => clientModifier(client, diffs));
+		this.networker.emitToAll(SETTINGS.EVENTS.STATE_UPDATE, client => clientModifier(client, diffs));
 
 		return this._state;
 	}

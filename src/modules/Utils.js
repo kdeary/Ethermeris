@@ -18,14 +18,14 @@ Utils.mergeModifier = (objValue, srcValue, key, object, source, stack) => {
 	}
 };
 
-Utils.compressNetworkEvent = (event, data) => {
-	return [event, data];
+Utils.compressNetworkEvent = (event, ...data) => {
+	return [event, ...data];
 };
 
 Utils.decompressNetworkEvent = data => {
 	return {
 		name: data[0],
-		data: data[1]
+		data: data.slice(1)
 	};
 };
 
