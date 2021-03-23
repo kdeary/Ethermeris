@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const detailedDiff = require('deep-object-diff').detailedDiff;
+const SETTINGS = require('./SETTINGS');
 const Utils = {};
 
 Utils.mergeModifier = (objValue, srcValue, key, object, source, stack) => {
@@ -54,6 +55,11 @@ Utils.waitUntil = (boolFunc, ms=100) => new Promise(resolve => {
 			resolve(true);
 		}
 	}, ms);
+});
+
+Utils.peerSettingsBuilder = (settings={}) => ({
+	ordered: settings.ordered || false,
+	iceServers: settings.iceServers || SETTINGS.ICE_SERVERS
 });
 
 module.exports = Utils;

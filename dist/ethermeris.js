@@ -24283,9 +24283,7 @@ class EthermerisClient {
 
 		this.forceWebSockets = settings.forceWebSockets || false;
 
-		this.peerConnectionSettings = {
-			ordered: settings.ordered || false
-		};
+		this.peerConnectionSettings = Utils.peerSettingsBuilder(settings);
 
 		this.iceCandidateReceived = false;
 		
@@ -24691,7 +24689,8 @@ class EthermerisServer {
 		this._state = { ...(this.stateSchema) };
 		this.settings = {
 			maxMessagesPerSecond: settings.maxMessagesPerSecond || 75,
-			clientTimeout: settings.clientTimeout || 20000 
+			clientTimeout: settings.clientTimeout || 20000,
+			peerSettings: Utils.peerSettingsBuilder(settings.peerSettings)
 		};
 
 		this.emitter = new EventEmitter();
@@ -24832,7 +24831,7 @@ class Networker {
 			let clientID = Number(this.connectionsMade);
 			this.connections[clientID] = new ClientConnection({
 				clientID,
-				connection: new WebRTC.RTCPeerConnection(),
+				connection: new WebRTC.RTCPeerConnection(this.serverSettings.peerSettings),
 				emitter: this.emitter,
 				getResponses: () => this.responses,
 				isWebSocket: false,
@@ -24997,13 +24996,25 @@ const SETTINGS = {
 		RESPONSE: 6,
 		DISCONNECTION_REASON: 7
 	},
-	HEARTBEAT_PING_INTERVAL: 20000
+	HEARTBEAT_PING_INTERVAL: 20000,
+	ICE_SERVERS: [
+		{
+			urls: [
+				"stun:stun.l.google.com:19302",
+				"stun:stun1.l.google.com:19302",
+				"stun:stun2.l.google.com:19302",
+				"stun:stun3.l.google.com:19302",
+				"stun:stun4.l.google.com:19302"
+			]
+		}
+	]
 };
 
 module.exports = SETTINGS;
 },{}],61:[function(require,module,exports){
 const _ = require('lodash');
 const detailedDiff = require('deep-object-diff').detailedDiff;
+const SETTINGS = require('./SETTINGS');
 const Utils = {};
 
 Utils.mergeModifier = (objValue, srcValue, key, object, source, stack) => {
@@ -25060,6 +25071,11 @@ Utils.waitUntil = (boolFunc, ms=100) => new Promise(resolve => {
 	}, ms);
 });
 
+Utils.peerSettingsBuilder = (settings={}) => ({
+	ordered: settings.ordered || false,
+	iceServers: settings.iceServers || SETTINGS.ICE_SERVERS
+});
+
 module.exports = Utils;
-},{"deep-object-diff":14,"lodash":22}]},{},[58])(58)
+},{"./SETTINGS":60,"deep-object-diff":14,"lodash":22}]},{},[58])(58)
 });

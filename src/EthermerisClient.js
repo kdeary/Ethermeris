@@ -21,9 +21,7 @@ class EthermerisClient {
 
 		this.forceWebSockets = settings.forceWebSockets || false;
 
-		this.peerConnectionSettings = {
-			ordered: settings.ordered || false
-		};
+		this.peerConnectionSettings = Utils.peerSettingsBuilder(settings);
 
 		this.iceCandidateReceived = false;
 		

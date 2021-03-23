@@ -17,7 +17,8 @@ class EthermerisServer {
 		this._state = { ...(this.stateSchema) };
 		this.settings = {
 			maxMessagesPerSecond: settings.maxMessagesPerSecond || 75,
-			clientTimeout: settings.clientTimeout || 20000 
+			clientTimeout: settings.clientTimeout || 20000,
+			peerSettings: Utils.peerSettingsBuilder(settings.peerSettings)
 		};
 
 		this.emitter = new EventEmitter();

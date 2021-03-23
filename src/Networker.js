@@ -51,7 +51,7 @@ class Networker {
 			let clientID = Number(this.connectionsMade);
 			this.connections[clientID] = new ClientConnection({
 				clientID,
-				connection: new WebRTC.RTCPeerConnection(),
+				connection: new WebRTC.RTCPeerConnection(this.serverSettings.peerSettings),
 				emitter: this.emitter,
 				getResponses: () => this.responses,
 				isWebSocket: false,

@@ -40,7 +40,7 @@
 			client.on('state_update', (newState, partialState, oldState) => {
 				render(newState);
 
-				console.log({partialState, oldState, newState});
+				// console.log({partialState, oldState, newState});
 			});
 
 			client.respond('tag', () => {
