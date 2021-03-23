@@ -184,7 +184,7 @@ class EthermerisClient {
 			}
 		});
 
-		this.dataChannel.addEventListener('close', () => this.onConnectionClose());
+		this.dataChannel.addEventListener('close', (e) => this.onConnectionClose(e));
 	}
 
 	attachSocketHandlers() {
@@ -207,8 +207,8 @@ class EthermerisClient {
 		}, SETTINGS.HEARTBEAT_PING_INTERVAL);
 	}
 
-	onConnectionClose() {
-		this._log("Connection closed");
+	onConnectionClose(e) {
+		this._log("Connection closed", e);
 		this.destroy();
 	}
 
@@ -236,6 +236,8 @@ class EthermerisClient {
 			);
 		} else if(event.name === SETTINGS.EVENTS.RESPONSE) {
 			this.responses[event.data[0]] = event.data[1];
+		} else if(event.name === SETTINGS.EVENTS.DISCONNECTION_REASON) {
+			this._log("Disconnection Reason: " + event.data[0]);
 		} else {
 			this.emitter.emit(event.name, ...(event.data));
 		}

@@ -97,7 +97,7 @@ class Networker {
 					// Send client connection and client metadata
 					this.serverEmitter.emit('connection', client, clientRequestData);
 				} else {
-					client.destroy();
+					client.destroy("Invalid Initial Data");
 				}
 
 				return;
@@ -147,7 +147,8 @@ class Networker {
 
 	buildClientConnectionSettings() {
 		return {
-			maxMessagesPerSecond: this.serverSettings.maxMessagesPerSecond
+			maxMessagesPerSecond: this.serverSettings.maxMessagesPerSecond,
+			clientTimeout: this.serverSettings.clientTimeout
 		}
 	}
 

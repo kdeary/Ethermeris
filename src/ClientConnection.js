@@ -49,7 +49,7 @@ class ClientConnection {
 			};
 
 			this.dataChannel.onopen = e => {};
-			this.dataChannel.onclose = () => this.destroy();
+			this.dataChannel.onclose = () => this.destroy("Data channel failure");
 		};
 	}
 
@@ -58,7 +58,7 @@ class ClientConnection {
 			this.onMessageData(message);
 		});
 
-		this.connection.on('close', () => this.destroy());
+		this.connection.on('close', () => this.destroy("Socket failure"));
 	}
 
 	onMessageData(message) {
@@ -71,7 +71,7 @@ class ClientConnection {
 			this.messagesSinceLastSecond > this.settings.maxMessagesPerSecond &&
 			!hasSecondPastYet
 		) {
-			this.destroy();
+			this.destroy("Message threshold broken");
 			return;
 		}
 
@@ -82,8 +82,8 @@ class ClientConnection {
 			this.messagesSinceLastSecond = 0;
 		}
 
-		this.emitter.emit('client_message', this, message);
 		this.resetAlive();
+		this.emitter.emit('client_message', this, message);
 	}
 
 	async exchangeICECandidates(candidate) {
@@ -96,15 +96,19 @@ class ClientConnection {
 	resetAlive() {
 		clearTimeout(this.lastPingTimeout);
 		this.lastPingTimeout = setTimeout(() => {
-			this.destroy();
-		}, SETTINGS.HEARTBEAT_PING_INTERVAL + 1000);
+			this.destroy("Timeout");
+		}, this.settings.clientTimeout + 1000);
 	}
 
 	activate() {
 		this.activated = true;
 	}
 
-	destroy() {
+	async destroy(reason="No reason specified.") {
+		// console.log("destroying", this.id, reason);
+		this.emit(SETTINGS.EVENTS.DISCONNECTION_REASON, reason);
+		await Utils.wait(100);
+
 		if(!this.activated) return;
 		clearTimeout(this.lastPingTimeout);
 
@@ -122,6 +126,8 @@ class ClientConnection {
 	}
 
 	emit(name, ...data) {
+		if(!this.activated) return false;
+
 		let event = Utils.compressNetworkEvent(name, ...data);
 		let b = encode(event);
 		let ui32 = b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
@@ -130,6 +136,8 @@ class ClientConnection {
 		if(this.isWebSocket) {
 			this.connection.send(ui32);
 		} else {
+			if(this.dataChannel.readyState !== "open") return false;
+			 
 			this.dataChannel.send(ui32);
 		}
 

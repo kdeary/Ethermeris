@@ -24145,7 +24145,7 @@ class ClientConnection {
 			};
 
 			this.dataChannel.onopen = e => {};
-			this.dataChannel.onclose = () => this.destroy();
+			this.dataChannel.onclose = () => this.destroy("Data channel failure");
 		};
 	}
 
@@ -24154,7 +24154,7 @@ class ClientConnection {
 			this.onMessageData(message);
 		});
 
-		this.connection.on('close', () => this.destroy());
+		this.connection.on('close', () => this.destroy("Socket failure"));
 	}
 
 	onMessageData(message) {
@@ -24167,7 +24167,7 @@ class ClientConnection {
 			this.messagesSinceLastSecond > this.settings.maxMessagesPerSecond &&
 			!hasSecondPastYet
 		) {
-			this.destroy();
+			this.destroy("Message threshold broken");
 			return;
 		}
 
@@ -24178,8 +24178,8 @@ class ClientConnection {
 			this.messagesSinceLastSecond = 0;
 		}
 
-		this.emitter.emit('client_message', this, message);
 		this.resetAlive();
+		this.emitter.emit('client_message', this, message);
 	}
 
 	async exchangeICECandidates(candidate) {
@@ -24192,15 +24192,19 @@ class ClientConnection {
 	resetAlive() {
 		clearTimeout(this.lastPingTimeout);
 		this.lastPingTimeout = setTimeout(() => {
-			this.destroy();
-		}, SETTINGS.HEARTBEAT_PING_INTERVAL + 1000);
+			this.destroy("Timeout");
+		}, this.settings.clientTimeout + 1000);
 	}
 
 	activate() {
 		this.activated = true;
 	}
 
-	destroy() {
+	async destroy(reason="No reason specified.") {
+		// console.log("destroying", this.id, reason);
+		this.emit(SETTINGS.EVENTS.DISCONNECTION_REASON, reason);
+		await Utils.wait(100);
+
 		if(!this.activated) return;
 		clearTimeout(this.lastPingTimeout);
 
@@ -24218,6 +24222,8 @@ class ClientConnection {
 	}
 
 	emit(name, ...data) {
+		if(!this.activated) return false;
+
 		let event = Utils.compressNetworkEvent(name, ...data);
 		let b = encode(event);
 		let ui32 = b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
@@ -24226,6 +24232,8 @@ class ClientConnection {
 		if(this.isWebSocket) {
 			this.connection.send(ui32);
 		} else {
+			if(this.dataChannel.readyState !== "open") return false;
+			 
 			this.dataChannel.send(ui32);
 		}
 
@@ -24438,7 +24446,7 @@ class EthermerisClient {
 			}
 		});
 
-		this.dataChannel.addEventListener('close', () => this.onConnectionClose());
+		this.dataChannel.addEventListener('close', (e) => this.onConnectionClose(e));
 	}
 
 	attachSocketHandlers() {
@@ -24461,8 +24469,8 @@ class EthermerisClient {
 		}, SETTINGS.HEARTBEAT_PING_INTERVAL);
 	}
 
-	onConnectionClose() {
-		this._log("Connection closed");
+	onConnectionClose(e) {
+		this._log("Connection closed", e);
 		this.destroy();
 	}
 
@@ -24490,6 +24498,8 @@ class EthermerisClient {
 			);
 		} else if(event.name === SETTINGS.EVENTS.RESPONSE) {
 			this.responses[event.data[0]] = event.data[1];
+		} else if(event.name === SETTINGS.EVENTS.DISCONNECTION_REASON) {
+			this._log("Disconnection Reason: " + event.data[0]);
 		} else {
 			this.emitter.emit(event.name, ...(event.data));
 		}
@@ -24680,7 +24690,8 @@ class EthermerisServer {
 		this.stateSchema = settings.stateSchema;
 		this._state = { ...(this.stateSchema) };
 		this.settings = {
-			maxMessagesPerSecond: settings.maxMessagesPerSecond || 75
+			maxMessagesPerSecond: settings.maxMessagesPerSecond || 75,
+			clientTimeout: settings.clientTimeout || 20000 
 		};
 
 		this.emitter = new EventEmitter();
@@ -24867,7 +24878,7 @@ class Networker {
 					// Send client connection and client metadata
 					this.serverEmitter.emit('connection', client, clientRequestData);
 				} else {
-					client.destroy();
+					client.destroy("Invalid Initial Data");
 				}
 
 				return;
@@ -24917,7 +24928,8 @@ class Networker {
 
 	buildClientConnectionSettings() {
 		return {
-			maxMessagesPerSecond: this.serverSettings.maxMessagesPerSecond
+			maxMessagesPerSecond: this.serverSettings.maxMessagesPerSecond,
+			clientTimeout: this.serverSettings.clientTimeout
 		}
 	}
 
@@ -24982,9 +24994,10 @@ const SETTINGS = {
 		CLIENT_CONNECT_REQUEST: 3,
 		PING: 4,
 		REQUEST: 5,
-		RESPONSE: 6
+		RESPONSE: 6,
+		DISCONNECTION_REASON: 7
 	},
-	HEARTBEAT_PING_INTERVAL: 5000
+	HEARTBEAT_PING_INTERVAL: 20000
 };
 
 module.exports = SETTINGS;
@@ -25035,6 +25048,8 @@ Utils.fullDiff = (obj1, obj2) => {
 	let splitDiff = detailedDiff(obj1, obj2);
 	return _.merge({}, splitDiff.added, splitDiff.deleted, splitDiff.updated);
 }
+
+Utils.wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 Utils.waitUntil = (boolFunc, ms=100) => new Promise(resolve => {
 	let interval = setInterval(() => {

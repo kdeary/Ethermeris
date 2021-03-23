@@ -32,6 +32,9 @@ server.on('connection', (client, metadata) => {
 
 	setTimeout(async () => {
 		let tag = await client.request('tag');
+
+		if(!tag) return;
+
 		server.setState(state => {
 			if(!state.clients[client.id]) return state;
 

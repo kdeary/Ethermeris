@@ -45,6 +45,8 @@ Utils.fullDiff = (obj1, obj2) => {
 	return _.merge({}, splitDiff.added, splitDiff.deleted, splitDiff.updated);
 }
 
+Utils.wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 Utils.waitUntil = (boolFunc, ms=100) => new Promise(resolve => {
 	let interval = setInterval(() => {
 		if(boolFunc()) {
