@@ -14,7 +14,7 @@ Ethermeris is very similar to other networking frameworks but:
 Ethermeris's main advantage is speed. 
 
 **UDP Networking through WebRTC**
-Ethermeris uses WebRTC to communicate between the server and clients to accomplish fast pack speeds. If WebRTC isn't supported on the browser, WebSockets is automatically used as a fallback.
+Ethermeris uses WebRTC to communicate between the server and clients to accomplish fast packet speeds. If WebRTC isn't supported on the browser, WebSockets is automatically used as a fallback.
 
 **Event Compression through MessagePack**
 Ethermeris automatically compresses and decompress event data using MessagePack end-to-end. By compressing JSON objects into binary blobs, Ethermeris can achieve high speeds.
