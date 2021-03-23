@@ -9,6 +9,7 @@
 			
 		</ul>
 		<button id="resetbtn">Reset Counter</button>
+		<button id="convertbtn">Server-Side Base64 Converter</button>
 
 		<script type="text/javascript" src="/dist/ethermeris.js"></script>
 		<script type="text/javascript">
@@ -28,6 +29,7 @@
 			const counterElem = document.getElementById('counter');
 			const clientsElem = document.getElementById('clients');
 			const resetBtnElem = document.getElementById('resetbtn');
+			const convertBtnElem = document.getElementById('convertbtn');
 
 			client.on('connected', (initialState, initialData) => {
 				console.log("Initial Event", initialState, initialData);
@@ -37,17 +39,29 @@
 
 			client.on('state_update', (newState, partialState, oldState) => {
 				render(newState);
+
+				console.log({partialState, oldState, newState});
+			});
+
+			client.respond('tag', () => {
+				return prompt("Server wants a tag: ");
 			});
 
 			resetBtnElem.onclick = () => {
 				client.emit('reset_counter');
-			}
+			};
+
+			convertBtnElem.onclick = async () => {
+				let response = await client.request('base64', prompt("Text to encode:"));
+
+				alert("Encoded Text: " + response);
+			};
 
 			function render(state) {
 				counterElem.innerText = state.counter;
 				clientsElem.innerHTML = "";
 
-				clientsElem.innerHTML = Object.values(state.clients).map(a => `<li>${a.name}</li>`).join("");
+				clientsElem.innerHTML = Object.values(state.clients).map(a => `<li>${a.name}${a.tag ? ` - "${a.tag}"` : ""}</li>`).join("");
 			}
 
 			document.addEventListener('beforeunload', () => {

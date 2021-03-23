@@ -24094,6 +24094,7 @@ module.exports = function () {
 
 },{}],53:[function(require,module,exports){
 (function (Buffer){(function (){
+const _ = require('lodash');
 const { encode, decode } = require('msgpack-lite');
 const SETTINGS = require('./modules/SETTINGS');
 const Utils = require('./modules/Utils');
@@ -24103,6 +24104,7 @@ class ClientConnection {
 		clientID,
 		connection,
 		emitter,
+		getResponses,
 		isWebSocket,
 		settings
 	}) {
@@ -24111,6 +24113,7 @@ class ClientConnection {
 		this.dataChannel = null;
 		this.isWebSocket = isWebSocket;
 		this.emitter = emitter;
+		this.getResponses = getResponses;
 		this.activated = false;
 		this.lastPingTimeout = null;
 		this.iceCandidate = null;
@@ -24225,12 +24228,30 @@ class ClientConnection {
 		} else {
 			this.dataChannel.send(ui32);
 		}
+
+		return true;
+	}
+
+	async request(eventName, ...data) {
+		const requestID = _.random(0, 2 ** 14);
+		if(!this.emit(SETTINGS.EVENTS.REQUEST, eventName, requestID, ...data)) return;
+
+		const responses = this.getResponses();
+
+		await Utils.waitUntil(() => typeof responses[requestID] !== "undefined");
+
+		const response = responses[requestID];
+		delete responses[requestID];
+
+		// console.log(requestID, response, responses);
+
+		return response;
 	}
 }
 
 module.exports = ClientConnection;
 }).call(this)}).call(this,require("buffer").Buffer)
-},{"./modules/SETTINGS":60,"./modules/Utils":61,"buffer":3,"msgpack-lite":23}],54:[function(require,module,exports){
+},{"./modules/SETTINGS":60,"./modules/Utils":61,"buffer":3,"lodash":22,"msgpack-lite":23}],54:[function(require,module,exports){
 const _ = require('lodash');
 const EventEmitter = require('eventemitter3');
 const { encode, decode } = require('msgpack-lite');
@@ -24249,6 +24270,8 @@ class EthermerisClient {
 		this.pingInterval = null;
 		this.serverID = settings.serverID || "";
 		this.verboseLogger = settings.verbose || false;
+		this.responders = {};
+		this.responses = {};
 
 		this.forceWebSockets = settings.forceWebSockets || false;
 
@@ -24265,6 +24288,8 @@ class EthermerisClient {
 	}
 
 	async init() {
+		this._log("Initiated");
+
 		if(window.RTCPeerConnection && !this.forceWebSockets) {
 			let webRTCConnected = await this.initWebRTC().catch(e => {
 				console.error("Error connecting using WebRTC: ", e);
@@ -24273,7 +24298,7 @@ class EthermerisClient {
 
 			if(!webRTCConnected) {
 				console.warn("Falling back to WebSockets...");
-				this.destroy();
+				this.destroyPeerConnection();
 
 				await this.initWebSockets();
 			}
@@ -24330,6 +24355,8 @@ class EthermerisClient {
 		);
 		this.attachSocketHandlers();
 
+		this._log("Initiated WebSocket Connection");
+
 		return true;
 	}
 
@@ -24338,13 +24365,20 @@ class EthermerisClient {
 		this.emitter = null;
 		this.ready = false;
 
+		this.destroyPeerConnection();
+		this.destroyWebSockets();
+	}
+
+	destroyPeerConnection(){
 		if(this.peerConnection){
 			this.dataChannel.close();
 			this.peerConnection.close();
 			this.peerConnection = null;
 			this.dataChannel = null;
 		}
+	}
 
+	destroyWebSockets() {
 		if(this.socket){
 			this.socket.close();
 			this.socket = null;
@@ -24361,6 +24395,11 @@ class EthermerisClient {
 
 	once(...args) {
 		this.emitter.once(...args);
+	}
+
+	respond(eventName, callback) {
+		this.responders[eventName] = callback;
+		return callback;
 	}
 
 	attachWebRTCHandlers() {
@@ -24392,6 +24431,8 @@ class EthermerisClient {
 				if(response.err) throw "Error connecting to candidate server. ERROR CODE: " + response.err;
 
 				await this.peerConnection.addIceCandidate(response);
+
+				this._log("Exchanged ICE candidates successfully");
 
 				this.iceCandidateReceived = true;
 			}
@@ -24435,6 +24476,20 @@ class EthermerisClient {
 			this.emitStartData(event.data[0], event.data[1]);
 		} else if(event.name === SETTINGS.EVENTS.STATE_UPDATE) {
 			this.handlePartialState(event.data[0]);
+		} else if(event.name === SETTINGS.EVENTS.REQUEST) {
+			const responderName = event.data[0];
+			const responseID = event.data[1];
+			if(!responderName || !responseID || !this.responders[responderName]) return;
+
+			let response = await this.responders[responderName](...(event.data.slice(2)));
+
+			this.emit(
+				SETTINGS.EVENTS.RESPONSE,
+				responseID,
+				response
+			);
+		} else if(event.name === SETTINGS.EVENTS.RESPONSE) {
+			this.responses[event.data[0]] = event.data[1];
 		} else {
 			this.emitter.emit(event.name, ...(event.data));
 		}
@@ -24451,7 +24506,7 @@ class EthermerisClient {
 
 		// console.log(this.state, partialState);
 
-		this.emitter.emit('state_update', _.cloneDeep(this.state), partialState, oldState);
+		if(this.emitter) this.emitter.emit('state_update', _.cloneDeep(this.state), partialState, oldState);
 	}
 
 	emit(name, ...data) {
@@ -24469,6 +24524,18 @@ class EthermerisClient {
 		}
 
 		return false;
+	}
+
+	async request(eventName, ...data) {
+		const requestID = _.random(0, 2 ** 14);
+		if(!this.emit(SETTINGS.EVENTS.REQUEST, eventName, requestID, ...data)) return;
+
+		await Utils.waitUntil(() => typeof this.responses[requestID] !== "undefined");
+
+		const response = this.responses[requestID];
+		delete this.responses[requestID];
+
+		return response;
 	}
 
 	_log(...args) {
@@ -24637,15 +24704,19 @@ class EthermerisServer {
 	}
 
 	on(...args) {
-		this.emitter.on(...args);
+		return this.emitter.on(...args);
 	}
 
 	off(...args) {
-		this.emitter.off(...args);
+		return this.emitter.off(...args);
 	}
 
 	once(...args) {
-		this.emitter.once(...args);
+		return this.emitter.once(...args);
+	}
+
+	respond(...args) {
+		return this.networker.addResponder(...args);
 	}
 
 	setState(newPartialState, clientModifier, shallowMerge) {
@@ -24709,16 +24780,23 @@ const Utils = require('./modules/Utils');
 class Networker {
 	constructor(settings) {
 		this.serverEmitter = settings.emitter;
+		this.serverSettings = settings.settings || {};
+
 		this.emitter = new EventEmitter();
+		this.responders = {};
+		this.responses = {};
+
 		this.connections = {};
+		this.connectionsMade = 0;
+
 		this.compressionKeys = {};
 		this.compressors = {};
+
 		this.wsServer = new WebSocket.Server({ noServer: true });
-		this.connectionsMade = 0;
+
 		this.getState = settings.getState;
 		this.getInitialData = settings.getInitialData || (() => {});
 		this.createRTCPeerConnection = null;
-		this.serverSettings = settings.settings || {};
 
 		this.attachServerHandlers();
 		this.attachEventHandlers();
@@ -24732,6 +24810,7 @@ class Networker {
 				clientID,
 				connection: ws,
 				emitter: this.emitter,
+				getResponses: () => this.responses,
 				isWebSocket: true,
 				settings: this.buildClientConnectionSettings()
 			});
@@ -24744,6 +24823,7 @@ class Networker {
 				clientID,
 				connection: new WebRTC.RTCPeerConnection(),
 				emitter: this.emitter,
+				getResponses: () => this.responses,
 				isWebSocket: false,
 				settings: this.buildClientConnectionSettings()
 			});
@@ -24761,10 +24841,15 @@ class Networker {
 		};
 	}
 
+	addResponder(eventName, callback) {
+		this.responders[eventName] = callback;
+		return callback;
+	}
+
 	attachEventHandlers() {
-		this.emitter.on('client_message', (client, data) => {
-			let blob = decode(data);
-			let event = Utils.decompressNetworkEvent(blob);
+		this.emitter.on('client_message', async (client, blob) => {
+			let data = decode(blob);
+			let event = Utils.decompressNetworkEvent(data);
 
 			if(event.name === SETTINGS.EVENTS.CLIENT_CONNECT_REQUEST) {
 				const clientRequestData = event.data[0];
@@ -24773,8 +24858,8 @@ class Networker {
 
 				// If the client shouldn't be kicked.
 				if(initialData !== false) {
-					this.connections[client.id].activate();
-					this.connections[client.id].emit(
+					client.activate();
+					client.emit(
 						SETTINGS.EVENTS.INITIAL_DATA,
 						this.getState(),
 						initialData
@@ -24782,17 +24867,37 @@ class Networker {
 					// Send client connection and client metadata
 					this.serverEmitter.emit('connection', client, clientRequestData);
 				} else {
-					this.connections[client.id].destroy();
+					client.destroy();
 				}
 
 				return;
 			} else if(event.name === SETTINGS.EVENTS.PING) {
 				return;
+			} else if(event.name === SETTINGS.EVENTS.REQUEST) {
+				const responderName = event.data[0];
+				const responseID = event.data[1];
+				if(!responderName || !responseID || !this.responders[responderName]) return;
+
+				let response = await this.responders[responderName](client, ...(event.data.slice(2)));
+
+				client.emit(
+					SETTINGS.EVENTS.RESPONSE,
+					responseID,
+					response
+				);
+
+				return;
+			} else if(event.name === SETTINGS.EVENTS.RESPONSE) {
+				this.responses[event.data[0]] = event.data[1];
+
+				// console.log("RESPONSE", event.data);
+
+				return;
 			}
 
 			if(!client.activated) return;
 
-			this.serverEmitter.emit(event.name, event.data, client);
+			this.serverEmitter.emit(event.name, client, ...event.data);
 		});
 
 		this.emitter.on('client_disconnected', client => {
@@ -24875,7 +24980,9 @@ const SETTINGS = {
 		INITIAL_DATA: 1,
 		STATE_UPDATE: 2,
 		CLIENT_CONNECT_REQUEST: 3,
-		PING: 4
+		PING: 4,
+		REQUEST: 5,
+		RESPONSE: 6
 	},
 	HEARTBEAT_PING_INTERVAL: 5000
 };
@@ -24893,7 +25000,7 @@ Utils.mergeModifier = (objValue, srcValue, key, object, source, stack) => {
 
 	let objectKeys = Object.keys(srcValue);
 	if(objectKeys.length > 0) {
-		let newObject = {...objValue, ...srcValue};
+		let newObject = _.merge(objValue, srcValue);
 		objectKeys.forEach(key => {
 			if(newObject[key] === null) delete newObject[key];
 		});

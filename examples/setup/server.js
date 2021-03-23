@@ -23,17 +23,35 @@ const server = manager.createServer({
 server.on('connection', (client, metadata) => {
 	server.setState(state => {
 		state.clients[client.id] = {
-			name: String(metadata.name)
+			name: String(metadata.name),
+			tag: ""
 		};
 
 		return state;
 	});
+
+	setTimeout(async () => {
+		let tag = await client.request('tag');
+		server.setState(state => {
+			if(!state.clients[client.id]) return state;
+
+			state.clients[client.id].tag = tag;
+
+			return state;
+		});
+	}, 5000);
 });
 
-server.on('reset_counter', (data, client) => {
+server.on('reset_counter', (client, data) => {
 	server.setState(state => ({
 		counter: 0
 	}));
+});
+
+server.respond('base64', async (client, value) => {
+	let str = String(value);
+
+	return Buffer.from(str).toString('base64');
 });
 
 server.on('disconnection', client => {
@@ -50,6 +68,8 @@ setInterval(() => {
 	server.setState(state => ({
 		counter: state.counter + 1
 	}));
+
+	// console.log(server.getState());
 }, 1000);
 
 require('../includeEthermerisClient')(app);

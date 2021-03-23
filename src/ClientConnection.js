@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const { encode, decode } = require('msgpack-lite');
 const SETTINGS = require('./modules/SETTINGS');
 const Utils = require('./modules/Utils');
@@ -7,6 +8,7 @@ class ClientConnection {
 		clientID,
 		connection,
 		emitter,
+		getResponses,
 		isWebSocket,
 		settings
 	}) {
@@ -15,6 +17,7 @@ class ClientConnection {
 		this.dataChannel = null;
 		this.isWebSocket = isWebSocket;
 		this.emitter = emitter;
+		this.getResponses = getResponses;
 		this.activated = false;
 		this.lastPingTimeout = null;
 		this.iceCandidate = null;
@@ -129,6 +132,24 @@ class ClientConnection {
 		} else {
 			this.dataChannel.send(ui32);
 		}
+
+		return true;
+	}
+
+	async request(eventName, ...data) {
+		const requestID = _.random(0, 2 ** 14);
+		if(!this.emit(SETTINGS.EVENTS.REQUEST, eventName, requestID, ...data)) return;
+
+		const responses = this.getResponses();
+
+		await Utils.waitUntil(() => typeof responses[requestID] !== "undefined");
+
+		const response = responses[requestID];
+		delete responses[requestID];
+
+		// console.log(requestID, response, responses);
+
+		return response;
 	}
 }
 

@@ -10,16 +10,23 @@ const Utils = require('./modules/Utils');
 class Networker {
 	constructor(settings) {
 		this.serverEmitter = settings.emitter;
+		this.serverSettings = settings.settings || {};
+
 		this.emitter = new EventEmitter();
+		this.responders = {};
+		this.responses = {};
+
 		this.connections = {};
+		this.connectionsMade = 0;
+
 		this.compressionKeys = {};
 		this.compressors = {};
+
 		this.wsServer = new WebSocket.Server({ noServer: true });
-		this.connectionsMade = 0;
+
 		this.getState = settings.getState;
 		this.getInitialData = settings.getInitialData || (() => {});
 		this.createRTCPeerConnection = null;
-		this.serverSettings = settings.settings || {};
 
 		this.attachServerHandlers();
 		this.attachEventHandlers();
@@ -33,6 +40,7 @@ class Networker {
 				clientID,
 				connection: ws,
 				emitter: this.emitter,
+				getResponses: () => this.responses,
 				isWebSocket: true,
 				settings: this.buildClientConnectionSettings()
 			});
@@ -45,6 +53,7 @@ class Networker {
 				clientID,
 				connection: new WebRTC.RTCPeerConnection(),
 				emitter: this.emitter,
+				getResponses: () => this.responses,
 				isWebSocket: false,
 				settings: this.buildClientConnectionSettings()
 			});
@@ -62,10 +71,15 @@ class Networker {
 		};
 	}
 
+	addResponder(eventName, callback) {
+		this.responders[eventName] = callback;
+		return callback;
+	}
+
 	attachEventHandlers() {
-		this.emitter.on('client_message', (client, data) => {
-			let blob = decode(data);
-			let event = Utils.decompressNetworkEvent(blob);
+		this.emitter.on('client_message', async (client, blob) => {
+			let data = decode(blob);
+			let event = Utils.decompressNetworkEvent(data);
 
 			if(event.name === SETTINGS.EVENTS.CLIENT_CONNECT_REQUEST) {
 				const clientRequestData = event.data[0];
@@ -74,8 +88,8 @@ class Networker {
 
 				// If the client shouldn't be kicked.
 				if(initialData !== false) {
-					this.connections[client.id].activate();
-					this.connections[client.id].emit(
+					client.activate();
+					client.emit(
 						SETTINGS.EVENTS.INITIAL_DATA,
 						this.getState(),
 						initialData
@@ -83,17 +97,37 @@ class Networker {
 					// Send client connection and client metadata
 					this.serverEmitter.emit('connection', client, clientRequestData);
 				} else {
-					this.connections[client.id].destroy();
+					client.destroy();
 				}
 
 				return;
 			} else if(event.name === SETTINGS.EVENTS.PING) {
 				return;
+			} else if(event.name === SETTINGS.EVENTS.REQUEST) {
+				const responderName = event.data[0];
+				const responseID = event.data[1];
+				if(!responderName || !responseID || !this.responders[responderName]) return;
+
+				let response = await this.responders[responderName](client, ...(event.data.slice(2)));
+
+				client.emit(
+					SETTINGS.EVENTS.RESPONSE,
+					responseID,
+					response
+				);
+
+				return;
+			} else if(event.name === SETTINGS.EVENTS.RESPONSE) {
+				this.responses[event.data[0]] = event.data[1];
+
+				// console.log("RESPONSE", event.data);
+
+				return;
 			}
 
 			if(!client.activated) return;
 
-			this.serverEmitter.emit(event.name, event.data, client);
+			this.serverEmitter.emit(event.name, client, ...event.data);
 		});
 
 		this.emitter.on('client_disconnected', client => {

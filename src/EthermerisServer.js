@@ -40,15 +40,19 @@ class EthermerisServer {
 	}
 
 	on(...args) {
-		this.emitter.on(...args);
+		return this.emitter.on(...args);
 	}
 
 	off(...args) {
-		this.emitter.off(...args);
+		return this.emitter.off(...args);
 	}
 
 	once(...args) {
-		this.emitter.once(...args);
+		return this.emitter.once(...args);
+	}
+
+	respond(...args) {
+		return this.networker.addResponder(...args);
 	}
 
 	setState(newPartialState, clientModifier, shallowMerge) {

@@ -16,6 +16,8 @@ class EthermerisClient {
 		this.pingInterval = null;
 		this.serverID = settings.serverID || "";
 		this.verboseLogger = settings.verbose || false;
+		this.responders = {};
+		this.responses = {};
 
 		this.forceWebSockets = settings.forceWebSockets || false;
 
@@ -32,6 +34,8 @@ class EthermerisClient {
 	}
 
 	async init() {
+		this._log("Initiated");
+
 		if(window.RTCPeerConnection && !this.forceWebSockets) {
 			let webRTCConnected = await this.initWebRTC().catch(e => {
 				console.error("Error connecting using WebRTC: ", e);
@@ -40,7 +44,7 @@ class EthermerisClient {
 
 			if(!webRTCConnected) {
 				console.warn("Falling back to WebSockets...");
-				this.destroy();
+				this.destroyPeerConnection();
 
 				await this.initWebSockets();
 			}
@@ -97,6 +101,8 @@ class EthermerisClient {
 		);
 		this.attachSocketHandlers();
 
+		this._log("Initiated WebSocket Connection");
+
 		return true;
 	}
 
@@ -105,13 +111,20 @@ class EthermerisClient {
 		this.emitter = null;
 		this.ready = false;
 
+		this.destroyPeerConnection();
+		this.destroyWebSockets();
+	}
+
+	destroyPeerConnection(){
 		if(this.peerConnection){
 			this.dataChannel.close();
 			this.peerConnection.close();
 			this.peerConnection = null;
 			this.dataChannel = null;
 		}
+	}
 
+	destroyWebSockets() {
 		if(this.socket){
 			this.socket.close();
 			this.socket = null;
@@ -128,6 +141,11 @@ class EthermerisClient {
 
 	once(...args) {
 		this.emitter.once(...args);
+	}
+
+	respond(eventName, callback) {
+		this.responders[eventName] = callback;
+		return callback;
 	}
 
 	attachWebRTCHandlers() {
@@ -159,6 +177,8 @@ class EthermerisClient {
 				if(response.err) throw "Error connecting to candidate server. ERROR CODE: " + response.err;
 
 				await this.peerConnection.addIceCandidate(response);
+
+				this._log("Exchanged ICE candidates successfully");
 
 				this.iceCandidateReceived = true;
 			}
@@ -202,6 +222,20 @@ class EthermerisClient {
 			this.emitStartData(event.data[0], event.data[1]);
 		} else if(event.name === SETTINGS.EVENTS.STATE_UPDATE) {
 			this.handlePartialState(event.data[0]);
+		} else if(event.name === SETTINGS.EVENTS.REQUEST) {
+			const responderName = event.data[0];
+			const responseID = event.data[1];
+			if(!responderName || !responseID || !this.responders[responderName]) return;
+
+			let response = await this.responders[responderName](...(event.data.slice(2)));
+
+			this.emit(
+				SETTINGS.EVENTS.RESPONSE,
+				responseID,
+				response
+			);
+		} else if(event.name === SETTINGS.EVENTS.RESPONSE) {
+			this.responses[event.data[0]] = event.data[1];
 		} else {
 			this.emitter.emit(event.name, ...(event.data));
 		}
@@ -218,7 +252,7 @@ class EthermerisClient {
 
 		// console.log(this.state, partialState);
 
-		this.emitter.emit('state_update', _.cloneDeep(this.state), partialState, oldState);
+		if(this.emitter) this.emitter.emit('state_update', _.cloneDeep(this.state), partialState, oldState);
 	}
 
 	emit(name, ...data) {
@@ -236,6 +270,18 @@ class EthermerisClient {
 		}
 
 		return false;
+	}
+
+	async request(eventName, ...data) {
+		const requestID = _.random(0, 2 ** 14);
+		if(!this.emit(SETTINGS.EVENTS.REQUEST, eventName, requestID, ...data)) return;
+
+		await Utils.waitUntil(() => typeof this.responses[requestID] !== "undefined");
+
+		const response = this.responses[requestID];
+		delete this.responses[requestID];
+
+		return response;
 	}
 
 	_log(...args) {

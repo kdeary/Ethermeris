@@ -9,7 +9,7 @@ Utils.mergeModifier = (objValue, srcValue, key, object, source, stack) => {
 
 	let objectKeys = Object.keys(srcValue);
 	if(objectKeys.length > 0) {
-		let newObject = {...objValue, ...srcValue};
+		let newObject = _.merge(objValue, srcValue);
 		objectKeys.forEach(key => {
 			if(newObject[key] === null) delete newObject[key];
 		});
