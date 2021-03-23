@@ -13,10 +13,13 @@
     "url": "git+https://github.com/kdeary/ethermeris.git"
   },
   "keywords": [
-    "real-time",
+    "realtime",
     "state",
     "management",
-    "networker"
+    "networker",
+    "webrtc",
+    "websockets",
+    "framework"
   ],
   "author": "kdeary",
   "license": "MIT",
