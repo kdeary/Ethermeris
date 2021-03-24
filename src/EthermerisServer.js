@@ -27,7 +27,8 @@ class EthermerisServer {
 		this.networker = new Networker({
 			emitter: this.emitter,
 			getState: () => this.getState(),
-			settings: this.settings
+			settings: this.settings,
+			getInitialData: settings.getInitialData
 		});
 
 		return this;
