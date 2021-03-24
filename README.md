@@ -1,3 +1,4 @@
+
 # Ethermeris
 An Experimental Real-time State Management Networking Framework for Node.js
 
@@ -75,3 +76,8 @@ httpServer.listen(3000);
 ```
 A more in-depth example is available in the `examples/setup` folder. Currently there is only one example.
 
+## Documentation
+Documentation is available here: [https://kdeary.github.io/Ethermeris](https://kdeary.github.io/Ethermeris/)
+
+## License
+[MIT](https://github.com/kdeary/Ethermeris/blob/master/LICENSE)
