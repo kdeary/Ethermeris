@@ -1931,94 +1931,7 @@ function numberIsNaN (obj) {
 }
 
 }).call(this)}).call(this,require("buffer").Buffer)
-},{"base64-js":1,"buffer":2,"ieee754":3}],3:[function(require,module,exports){
-/*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
-exports.read = function (buffer, offset, isLE, mLen, nBytes) {
-  var e, m
-  var eLen = (nBytes * 8) - mLen - 1
-  var eMax = (1 << eLen) - 1
-  var eBias = eMax >> 1
-  var nBits = -7
-  var i = isLE ? (nBytes - 1) : 0
-  var d = isLE ? -1 : 1
-  var s = buffer[offset + i]
-
-  i += d
-
-  e = s & ((1 << (-nBits)) - 1)
-  s >>= (-nBits)
-  nBits += eLen
-  for (; nBits > 0; e = (e * 256) + buffer[offset + i], i += d, nBits -= 8) {}
-
-  m = e & ((1 << (-nBits)) - 1)
-  e >>= (-nBits)
-  nBits += mLen
-  for (; nBits > 0; m = (m * 256) + buffer[offset + i], i += d, nBits -= 8) {}
-
-  if (e === 0) {
-    e = 1 - eBias
-  } else if (e === eMax) {
-    return m ? NaN : ((s ? -1 : 1) * Infinity)
-  } else {
-    m = m + Math.pow(2, mLen)
-    e = e - eBias
-  }
-  return (s ? -1 : 1) * m * Math.pow(2, e - mLen)
-}
-
-exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
-  var e, m, c
-  var eLen = (nBytes * 8) - mLen - 1
-  var eMax = (1 << eLen) - 1
-  var eBias = eMax >> 1
-  var rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0)
-  var i = isLE ? 0 : (nBytes - 1)
-  var d = isLE ? 1 : -1
-  var s = value < 0 || (value === 0 && 1 / value < 0) ? 1 : 0
-
-  value = Math.abs(value)
-
-  if (isNaN(value) || value === Infinity) {
-    m = isNaN(value) ? 1 : 0
-    e = eMax
-  } else {
-    e = Math.floor(Math.log(value) / Math.LN2)
-    if (value * (c = Math.pow(2, -e)) < 1) {
-      e--
-      c *= 2
-    }
-    if (e + eBias >= 1) {
-      value += rt / c
-    } else {
-      value += rt * Math.pow(2, 1 - eBias)
-    }
-    if (value * c >= 2) {
-      e++
-      c /= 2
-    }
-
-    if (e + eBias >= eMax) {
-      m = 0
-      e = eMax
-    } else if (e + eBias >= 1) {
-      m = ((value * c) - 1) * Math.pow(2, mLen)
-      e = e + eBias
-    } else {
-      m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen)
-      e = 0
-    }
-  }
-
-  for (; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8) {}
-
-  e = (e << mLen) | m
-  eLen += mLen
-  for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8) {}
-
-  buffer[offset + i - d] |= s * 128
-}
-
-},{}],4:[function(require,module,exports){
+},{"base64-js":1,"buffer":2,"ieee754":12}],3:[function(require,module,exports){
 (function (global, factory) {
   if (typeof define === "function" && define.amd) {
     define(['module', 'exports', '../utils'], factory);
@@ -2090,7 +2003,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   exports.default = addedDiff;
   module.exports = exports['default'];
 });
-},{"../utils":10}],5:[function(require,module,exports){
+},{"../utils":9}],4:[function(require,module,exports){
 (function (global, factory) {
   if (typeof define === "function" && define.amd) {
     define(['module', 'exports', '../utils'], factory);
@@ -2161,7 +2074,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   exports.default = deletedDiff;
   module.exports = exports['default'];
 });
-},{"../utils":10}],6:[function(require,module,exports){
+},{"../utils":9}],5:[function(require,module,exports){
 (function (global, factory) {
   if (typeof define === "function" && define.amd) {
     define(['module', 'exports', '../added', '../deleted', '../updated'], factory);
@@ -2204,7 +2117,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   exports.default = detailedDiff;
   module.exports = exports['default'];
 });
-},{"../added":4,"../deleted":5,"../updated":9}],7:[function(require,module,exports){
+},{"../added":3,"../deleted":4,"../updated":8}],6:[function(require,module,exports){
 (function (global, factory) {
   if (typeof define === "function" && define.amd) {
     define(['module', 'exports', '../utils'], factory);
@@ -2284,7 +2197,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   exports.default = diff;
   module.exports = exports['default'];
 });
-},{"../utils":10}],8:[function(require,module,exports){
+},{"../utils":9}],7:[function(require,module,exports){
 (function (global, factory) {
   if (typeof define === "function" && define.amd) {
     define(['exports', './diff', './added', './deleted', './updated', './detailed'], factory);
@@ -2327,7 +2240,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   exports.updatedDiff = _updated2.default;
   exports.detailedDiff = _detailed2.default;
 });
-},{"./added":4,"./deleted":5,"./detailed":6,"./diff":7,"./updated":9}],9:[function(require,module,exports){
+},{"./added":3,"./deleted":4,"./detailed":5,"./diff":6,"./updated":8}],8:[function(require,module,exports){
 (function (global, factory) {
   if (typeof define === "function" && define.amd) {
     define(['module', 'exports', '../utils'], factory);
@@ -2407,7 +2320,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   exports.default = updatedDiff;
   module.exports = exports['default'];
 });
-},{"../utils":10}],10:[function(require,module,exports){
+},{"../utils":9}],9:[function(require,module,exports){
 (function (global, factory) {
   if (typeof define === "function" && define.amd) {
     define(['exports'], factory);
@@ -2460,7 +2373,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
     return isObject(o) && !o.hasOwnProperty ? _extends({}, o) : o;
   };
 });
-},{}],11:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 /**
  * event-lite.js - Light-weight EventEmitter (less than 1KB when gzipped)
  *
@@ -2642,7 +2555,7 @@ function EventLite() {
 
 })(EventLite);
 
-},{}],12:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict';
 
 var has = Object.prototype.hasOwnProperty
@@ -2980,9 +2893,94 @@ if ('undefined' !== typeof module) {
   module.exports = EventEmitter;
 }
 
+},{}],12:[function(require,module,exports){
+/*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
+exports.read = function (buffer, offset, isLE, mLen, nBytes) {
+  var e, m
+  var eLen = (nBytes * 8) - mLen - 1
+  var eMax = (1 << eLen) - 1
+  var eBias = eMax >> 1
+  var nBits = -7
+  var i = isLE ? (nBytes - 1) : 0
+  var d = isLE ? -1 : 1
+  var s = buffer[offset + i]
+
+  i += d
+
+  e = s & ((1 << (-nBits)) - 1)
+  s >>= (-nBits)
+  nBits += eLen
+  for (; nBits > 0; e = (e * 256) + buffer[offset + i], i += d, nBits -= 8) {}
+
+  m = e & ((1 << (-nBits)) - 1)
+  e >>= (-nBits)
+  nBits += mLen
+  for (; nBits > 0; m = (m * 256) + buffer[offset + i], i += d, nBits -= 8) {}
+
+  if (e === 0) {
+    e = 1 - eBias
+  } else if (e === eMax) {
+    return m ? NaN : ((s ? -1 : 1) * Infinity)
+  } else {
+    m = m + Math.pow(2, mLen)
+    e = e - eBias
+  }
+  return (s ? -1 : 1) * m * Math.pow(2, e - mLen)
+}
+
+exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
+  var e, m, c
+  var eLen = (nBytes * 8) - mLen - 1
+  var eMax = (1 << eLen) - 1
+  var eBias = eMax >> 1
+  var rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0)
+  var i = isLE ? 0 : (nBytes - 1)
+  var d = isLE ? 1 : -1
+  var s = value < 0 || (value === 0 && 1 / value < 0) ? 1 : 0
+
+  value = Math.abs(value)
+
+  if (isNaN(value) || value === Infinity) {
+    m = isNaN(value) ? 1 : 0
+    e = eMax
+  } else {
+    e = Math.floor(Math.log(value) / Math.LN2)
+    if (value * (c = Math.pow(2, -e)) < 1) {
+      e--
+      c *= 2
+    }
+    if (e + eBias >= 1) {
+      value += rt / c
+    } else {
+      value += rt * Math.pow(2, 1 - eBias)
+    }
+    if (value * c >= 2) {
+      e++
+      c /= 2
+    }
+
+    if (e + eBias >= eMax) {
+      m = 0
+      e = eMax
+    } else if (e + eBias >= 1) {
+      m = ((value * c) - 1) * Math.pow(2, mLen)
+      e = e + eBias
+    } else {
+      m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen)
+      e = 0
+    }
+  }
+
+  for (; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8) {}
+
+  e = (e << mLen) | m
+  eLen += mLen
+  for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8) {}
+
+  buffer[offset + i - d] |= s * 128
+}
+
 },{}],13:[function(require,module,exports){
-arguments[4][3][0].apply(exports,arguments)
-},{"dup":3}],14:[function(require,module,exports){
 (function (Buffer){(function (){
 // int64-buffer.js
 
@@ -3279,14 +3277,14 @@ var Uint64BE, Int64BE, Uint64LE, Int64LE;
 }(typeof exports === 'object' && typeof exports.nodeName !== 'string' ? exports : (this || {}));
 
 }).call(this)}).call(this,require("buffer").Buffer)
-},{"buffer":2}],15:[function(require,module,exports){
+},{"buffer":2}],14:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-},{}],16:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 (function (global){(function (){
 /**
  * @license
@@ -20499,7 +20497,7 @@ module.exports = Array.isArray || function (arr) {
 }.call(this));
 
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],17:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 // browser.js
 
 exports.encode = require("./encode").encode;
@@ -20511,7 +20509,7 @@ exports.Decoder = require("./decoder").Decoder;
 exports.createCodec = require("./ext").createCodec;
 exports.codec = require("./codec").codec;
 
-},{"./codec":26,"./decode":28,"./decoder":29,"./encode":31,"./encoder":32,"./ext":36}],18:[function(require,module,exports){
+},{"./codec":25,"./decode":27,"./decoder":28,"./encode":30,"./encoder":31,"./ext":35}],17:[function(require,module,exports){
 (function (Buffer){(function (){
 /* globals Buffer */
 
@@ -20525,7 +20523,7 @@ function c(B) {
   return B && B.isBuffer && B;
 }
 }).call(this)}).call(this,require("buffer").Buffer)
-},{"buffer":2}],19:[function(require,module,exports){
+},{"buffer":2}],18:[function(require,module,exports){
 // buffer-lite.js
 
 var MAXBUFLEN = 8192;
@@ -20661,7 +20659,7 @@ function copy(target, targetStart, start, end) {
   return len;
 }
 
-},{}],20:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 // bufferish-array.js
 
 var Bufferish = require("./bufferish");
@@ -20704,7 +20702,7 @@ function from(value) {
   return Array.prototype.slice.call(value);
 }
 
-},{"./bufferish":24}],21:[function(require,module,exports){
+},{"./bufferish":23}],20:[function(require,module,exports){
 // bufferish-buffer.js
 
 var Bufferish = require("./bufferish");
@@ -20752,7 +20750,7 @@ function from(value) {
   }
 }
 
-},{"./bufferish":24}],22:[function(require,module,exports){
+},{"./bufferish":23}],21:[function(require,module,exports){
 // bufferish-proto.js
 
 /* jshint eqnull:true */
@@ -20840,7 +20838,7 @@ function gen(method) {
   }
 }
 
-},{"./buffer-lite":19,"./bufferish":24}],23:[function(require,module,exports){
+},{"./buffer-lite":18,"./bufferish":23}],22:[function(require,module,exports){
 // bufferish-uint8array.js
 
 var Bufferish = require("./bufferish");
@@ -20893,7 +20891,7 @@ function from(value) {
   return new Uint8Array(value);
 }
 
-},{"./bufferish":24}],24:[function(require,module,exports){
+},{"./bufferish":23}],23:[function(require,module,exports){
 // bufferish.js
 
 var Buffer = exports.global = require("./buffer-global");
@@ -21002,7 +21000,7 @@ function _is(name, key) {
     return (value != null) && {}.toString.call(key ? value[key] : value) === name;
   };
 }
-},{"./buffer-global":18,"./bufferish-array":20,"./bufferish-buffer":21,"./bufferish-proto":22,"./bufferish-uint8array":23,"isarray":15}],25:[function(require,module,exports){
+},{"./buffer-global":17,"./bufferish-array":19,"./bufferish-buffer":20,"./bufferish-proto":21,"./bufferish-uint8array":22,"isarray":14}],24:[function(require,module,exports){
 // codec-base.js
 
 var IS_ARRAY = require("isarray");
@@ -21071,7 +21069,7 @@ function createCodec(options) {
 
 exports.preset = createCodec({preset: true});
 
-},{"./bufferish":24,"isarray":15}],26:[function(require,module,exports){
+},{"./bufferish":23,"isarray":14}],25:[function(require,module,exports){
 // codec.js
 
 // load both interfaces
@@ -21085,7 +21083,7 @@ exports.codec = {
   preset: require("./codec-base").preset
 };
 
-},{"./codec-base":25,"./read-core":38,"./write-core":41}],27:[function(require,module,exports){
+},{"./codec-base":24,"./read-core":37,"./write-core":40}],26:[function(require,module,exports){
 // decode-buffer.js
 
 exports.DecodeBuffer = DecodeBuffer;
@@ -21114,7 +21112,7 @@ DecodeBuffer.prototype.fetch = function() {
   return this.codec.decode(this);
 };
 
-},{"./flex-buffer":37,"./read-core":38}],28:[function(require,module,exports){
+},{"./flex-buffer":36,"./read-core":37}],27:[function(require,module,exports){
 // decode.js
 
 exports.decode = decode;
@@ -21126,7 +21124,7 @@ function decode(input, options) {
   decoder.write(input);
   return decoder.read();
 }
-},{"./decode-buffer":27}],29:[function(require,module,exports){
+},{"./decode-buffer":26}],28:[function(require,module,exports){
 // decoder.js
 
 exports.Decoder = Decoder;
@@ -21157,7 +21155,7 @@ Decoder.prototype.end = function(chunk) {
   this.emit("end");
 };
 
-},{"./decode-buffer":27,"event-lite":11}],30:[function(require,module,exports){
+},{"./decode-buffer":26,"event-lite":10}],29:[function(require,module,exports){
 // encode-buffer.js
 
 exports.EncodeBuffer = EncodeBuffer;
@@ -21186,7 +21184,7 @@ EncodeBuffer.prototype.write = function(input) {
   this.codec.encode(this, input);
 };
 
-},{"./flex-buffer":37,"./write-core":41}],31:[function(require,module,exports){
+},{"./flex-buffer":36,"./write-core":40}],30:[function(require,module,exports){
 // encode.js
 
 exports.encode = encode;
@@ -21199,7 +21197,7 @@ function encode(input, options) {
   return encoder.read();
 }
 
-},{"./encode-buffer":30}],32:[function(require,module,exports){
+},{"./encode-buffer":29}],31:[function(require,module,exports){
 // encoder.js
 
 exports.Encoder = Encoder;
@@ -21227,7 +21225,7 @@ Encoder.prototype.end = function(chunk) {
   this.emit("end");
 };
 
-},{"./encode-buffer":30,"event-lite":11}],33:[function(require,module,exports){
+},{"./encode-buffer":29,"event-lite":10}],32:[function(require,module,exports){
 // ext-buffer.js
 
 exports.ExtBuffer = ExtBuffer;
@@ -21240,7 +21238,7 @@ function ExtBuffer(buffer, type) {
   this.type = type;
 }
 
-},{"./bufferish":24}],34:[function(require,module,exports){
+},{"./bufferish":23}],33:[function(require,module,exports){
 // ext-packer.js
 
 exports.setExtPackers = setExtPackers;
@@ -21320,7 +21318,7 @@ function packError(value) {
   return out;
 }
 
-},{"./bufferish":24,"./encode":31}],35:[function(require,module,exports){
+},{"./bufferish":23,"./encode":30}],34:[function(require,module,exports){
 // ext-unpacker.js
 
 exports.setExtUnpackers = setExtUnpackers;
@@ -21403,7 +21401,7 @@ function unpackArrayBuffer(value) {
   return (new Uint8Array(value)).buffer;
 }
 
-},{"./bufferish":24,"./decode":28}],36:[function(require,module,exports){
+},{"./bufferish":23,"./decode":27}],35:[function(require,module,exports){
 // ext.js
 
 // load both interfaces
@@ -21412,7 +21410,7 @@ require("./write-core");
 
 exports.createCodec = require("./codec-base").createCodec;
 
-},{"./codec-base":25,"./read-core":38,"./write-core":41}],37:[function(require,module,exports){
+},{"./codec-base":24,"./read-core":37,"./write-core":40}],36:[function(require,module,exports){
 // flex-buffer.js
 
 exports.FlexDecoder = FlexDecoder;
@@ -21608,7 +21606,7 @@ function mixinFactory(source) {
   }
 }
 
-},{"./bufferish":24}],38:[function(require,module,exports){
+},{"./bufferish":23}],37:[function(require,module,exports){
 // read-core.js
 
 var ExtBuffer = require("./ext-buffer").ExtBuffer;
@@ -21662,7 +21660,7 @@ function getExtUnpacker(type) {
   }
 }
 
-},{"./codec-base":25,"./ext-buffer":33,"./ext-unpacker":35,"./read-format":39,"./read-token":40}],39:[function(require,module,exports){
+},{"./codec-base":24,"./ext-buffer":32,"./ext-unpacker":34,"./read-format":38,"./read-token":39}],38:[function(require,module,exports){
 // read-format.js
 
 var ieee754 = require("ieee754");
@@ -21844,7 +21842,7 @@ function readFloatBE(start) {
 function readDoubleBE(start) {
   return ieee754.read(this, start, false, 52, 8);
 }
-},{"./bufferish":24,"./bufferish-proto":22,"ieee754":13,"int64-buffer":14}],40:[function(require,module,exports){
+},{"./bufferish":23,"./bufferish-proto":21,"ieee754":12,"int64-buffer":13}],39:[function(require,module,exports){
 // read-token.js
 
 var ReadFormat = require("./read-format");
@@ -22007,7 +22005,7 @@ function fix(len, method) {
   };
 }
 
-},{"./read-format":39}],41:[function(require,module,exports){
+},{"./read-format":38}],40:[function(require,module,exports){
 // write-core.js
 
 var ExtBuffer = require("./ext-buffer").ExtBuffer;
@@ -22078,7 +22076,7 @@ function getExtPacker(value) {
   }
 }
 
-},{"./codec-base":25,"./ext-buffer":33,"./ext-packer":34,"./write-type":43}],42:[function(require,module,exports){
+},{"./codec-base":24,"./ext-buffer":32,"./ext-packer":33,"./write-type":42}],41:[function(require,module,exports){
 // write-token.js
 
 var ieee754 = require("ieee754");
@@ -22307,7 +22305,7 @@ function writeDoubleBE(value, offset) {
   ieee754.write(this, value, offset, false, 52, 8);
 }
 
-},{"./bufferish":24,"./write-uint8":44,"ieee754":13,"int64-buffer":14}],43:[function(require,module,exports){
+},{"./bufferish":23,"./write-uint8":43,"ieee754":12,"int64-buffer":13}],42:[function(require,module,exports){
 // write-type.js
 
 var IS_ARRAY = require("isarray");
@@ -22578,7 +22576,7 @@ function getWriteType(options) {
   }
 }
 
-},{"./bufferish":24,"./bufferish-proto":22,"./ext-buffer":33,"./write-token":42,"./write-uint8":44,"int64-buffer":14,"isarray":15}],44:[function(require,module,exports){
+},{"./bufferish":23,"./bufferish-proto":21,"./ext-buffer":32,"./write-token":41,"./write-uint8":43,"int64-buffer":13,"isarray":14}],43:[function(require,module,exports){
 // write-unit8.js
 
 var constant = exports.uint8 = new Array(256);
@@ -22594,13 +22592,19 @@ function write0(type) {
   };
 }
 
-},{}],45:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 const _ = require('lodash');
 const EventEmitter = require('eventemitter3');
 const { encode, decode } = require('msgpack-lite');
 const SETTINGS = require('./modules/SETTINGS');
 const Utils = require('./modules/Utils');
 
+/**
+ * The Ethermeris Client. This class contains WebSocket/WebRTC connections, an event emitter, the local state, and responders.
+ * This class is only meant to be used on the browser to connect with Ethermeris servers.
+ * @class EthermerisClient
+ * @param {ClientSettings} settings - Ethermeris Client Settings
+ */
 class EthermerisClient {
 	constructor(settings) {
 		this.state = {};
@@ -22611,14 +22615,14 @@ class EthermerisClient {
 		this.peerConnection = null;
 		this.dataChannel = null;
 		this.pingInterval = null;
-		this.serverID = settings.serverID || "";
+		this.serverID = settings.serverID || "main";
 		this.verboseLogger = settings.verbose || false;
 		this.responders = {};
 		this.responses = {};
 
 		this.forceWebSockets = settings.forceWebSockets || false;
 
-		this.peerConnectionSettings = Utils.peerSettingsBuilder(settings);
+		this.peerConnectionSettings = Utils.peerSettingsBuilder(settings.peerSettings);
 
 		this.iceCandidateReceived = false;
 		
@@ -22627,6 +22631,10 @@ class EthermerisClient {
 		this.getInitialData = settings.getInitialData || (() => {});
 	}
 
+	/**
+	 * Initiates the client by choosing the best connection method.
+	 * @return {EthermerisClient}
+	 */
 	async init() {
 		this._log("Initiated");
 
@@ -22700,6 +22708,10 @@ class EthermerisClient {
 		return true;
 	}
 
+	/**
+	 * Destroys this instance and terminates all connections.
+	 * @return {[type]} [description]
+	 */
 	destroy() {
 		clearInterval(this.pingInterval);
 		this.emitter = null;
@@ -22725,18 +22737,43 @@ class EthermerisClient {
 		}
 	}
 
-	on(...args) {
-		this.emitter.on(...args);
+	/**
+	 * Adds an event handler to the emitter
+	 * @param  {String|Number} eventName - Name of the event to handle.
+	 * @param  {Function} listener - Event listener to add.
+	 * @return {EventEmitter}
+	 */
+	on(eventName, listener) {
+		return this.emitter.on(eventName, listener);
 	}
 
-	off(...args) {
-		this.emitter.off(...args);
+	/**
+	 * Removes an event handler to the emitter
+	 * @param  {String|Number} eventName - Name of the event to remove.
+	 * @param  {Function} listener - Event listener to remove.
+	 * @return {EventEmitter}
+	 */
+	off(eventName, listener) {
+		return this.emitter.off(eventName, listener);
 	}
 
-	once(...args) {
-		this.emitter.once(...args);
+	/**
+	 * Adds an ephemeral event handler to the emitter that is removed once it's called.
+	 * @param  {String|Number} eventName - Name of the event to handle.
+	 * @param  {Function} listener - Event listener to add ephemerally.
+	 * @return {EventEmitter}
+	 */
+	once(eventName, listener) {
+		return this.emitter.once(eventName, listener);
 	}
 
+	/**
+	 * Adds an event responder. It's like an event handler,
+	 * except only one handler per event and that handler can return a value.
+	 * @param  {String|Number} eventName - Name of the event to respond to.
+	 * @param  {Function} listener - Event responder listener to add.
+	 * @return {EventEmitter}
+	 */
 	respond(eventName, callback) {
 		this.responders[eventName] = callback;
 		return callback;
@@ -22795,7 +22832,9 @@ class EthermerisClient {
 	onConnectionOpen(){
 		this._log("Connection open");
 		this.ready = true;
+
 		this.emit(SETTINGS.EVENTS.CLIENT_CONNECT_REQUEST, this.getInitialData());
+
 		this.pingInterval = setInterval(() => {
 			this.emit(SETTINGS.EVENTS.PING);
 		}, SETTINGS.HEARTBEAT_PING_INTERVAL);
@@ -22831,8 +22870,15 @@ class EthermerisClient {
 		} else if(event.name === SETTINGS.EVENTS.RESPONSE) {
 			this.responses[event.data[0]] = event.data[1];
 		} else if(event.name === SETTINGS.EVENTS.DISCONNECTION_REASON) {
-			this._log("Disconnection Reason: " + event.data[0]);
-			this.emitter.emit('disconnection', event.data[0]);
+			this._log("Disconnection Reason: " + event.data[0] + " (" + event.data[1] + ")");
+
+			/**
+			 * Disconnection Event.
+			 * @event EthermerisClient#disconnection
+			 * @param {String} disconnectionReason - The reason for disconnection.
+			 * @param {Number} disconnectionCode - The disconnection code.
+			 */
+			this.emitter.emit('disconnection', event.data[0], event.data[1]);
 		} else {
 			this.emitter.emit(event.name, ...(event.data));
 		}
@@ -22840,6 +22886,13 @@ class EthermerisClient {
 
 	emitStartData(initialState, initialData) {
 		this.state = initialState;
+
+		/**
+		 * Connection Event.
+		 * @event EthermerisClient#connection
+		 * @param {Object} initialState - The entire state object of the server.
+		 * @param {Object} initialData - An object containing custom initial data
+		 */
 		this.emitter.emit('connection', initialState, initialData);
 	}
 
@@ -22852,6 +22905,12 @@ class EthermerisClient {
 		if(this.emitter) this.emitter.emit('state_update', _.cloneDeep(this.state), partialState, oldState);
 	}
 
+	/**
+	 * Sends an event to the server.
+	 * @param  {String|Number} name - The event name
+	 * @param  {...Object} data - The event data
+	 * @return {Boolean} Returns true on success, false on fail.
+	 */
 	emit(name, ...data) {
 		if(!this.ready) return false;
 
@@ -22869,6 +22928,12 @@ class EthermerisClient {
 		return false;
 	}
 
+	/**
+	 * Sends a request to the server and waits for a response.
+	 * @param  {String|Number} eventName - The name of the event.
+	 * @param  {...Object} data - The event data
+	 * @return {Promise} Returns a promise that holds the response from the server.
+	 */
 	async request(eventName, ...data) {
 		const requestID = _.random(0, 2 ** 14);
 		if(!this.emit(SETTINGS.EVENTS.REQUEST, eventName, requestID, ...data)) return;
@@ -22888,9 +22953,9 @@ class EthermerisClient {
 }
 
 module.exports = EthermerisClient;
-},{"./modules/SETTINGS":47,"./modules/Utils":48,"eventemitter3":12,"lodash":16,"msgpack-lite":17}],46:[function(require,module,exports){
+},{"./modules/SETTINGS":46,"./modules/Utils":47,"eventemitter3":11,"lodash":15,"msgpack-lite":16}],45:[function(require,module,exports){
 module.exports = require('./EthermerisClient');
-},{"./EthermerisClient":45}],47:[function(require,module,exports){
+},{"./EthermerisClient":44}],46:[function(require,module,exports){
 const SETTINGS = {
 	EVENTS: {
 		INITIAL_DATA: 1,
@@ -22900,6 +22965,13 @@ const SETTINGS = {
 		REQUEST: 5,
 		RESPONSE: 6,
 		DISCONNECTION_REASON: 7
+	},
+	DISCONNECTION_CODES: {
+		NO_REASON: 0,
+		TIMEOUT: 1,
+		INVALID_INITIAL_DATA: 2,
+		CONNECTION_FAILURE: 3,
+		THROTTLER: 4
 	},
 	HEARTBEAT_PING_INTERVAL: 20000,
 	ICE_SERVERS: [
@@ -22916,7 +22988,7 @@ const SETTINGS = {
 };
 
 module.exports = SETTINGS;
-},{}],48:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 const _ = require('lodash');
 const detailedDiff = require('deep-object-diff').detailedDiff;
 const SETTINGS = require('./SETTINGS');
@@ -22976,6 +23048,11 @@ Utils.waitUntil = (boolFunc, ms=100) => new Promise(resolve => {
 	}, ms);
 });
 
+Utils.generateNetworkError = (code, text) => ({
+	code: code || SETTINGS.DISCONNECTION_CODES.NO_REASON,
+	text: text || "..."
+});
+
 Utils.peerSettingsBuilder = (settings={}) => ({
 	ordered: false,
 	iceServers: SETTINGS.ICE_SERVERS,
@@ -22983,5 +23060,5 @@ Utils.peerSettingsBuilder = (settings={}) => ({
 });
 
 module.exports = Utils;
-},{"./SETTINGS":47,"deep-object-diff":8,"lodash":16}]},{},[46])(46)
+},{"./SETTINGS":46,"deep-object-diff":7,"lodash":15}]},{},[45])(45)
 });

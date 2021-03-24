@@ -1,12 +1,13 @@
 {
   "name": "ethermeris",
-  "version": "0.0.2",
+  "version": "0.0.6",
   "description": "",
   "main": "src/index.js",
   "scripts": {
     "test": "node src/index.js",
     "build": "browserify ./src/client_entry.js --standalone EthermerisClient -o ./dist/ethermeris.js",
     "watch": "watchify ./src/client_entry.js --standalone EthermerisClient -o ./dist/ethermeris.js -v",
+    "publisher": "yarn test & yarn build & yarn docs & npm publish",
     "docs": "documentation build ./src/index.js -f html -o docs",
     "watch-docs": "documentation serve --watch ./src/index.js -f html"
   },
