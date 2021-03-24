@@ -3,6 +3,7 @@
  * @type {Object}
  * @property {String|Number} [serverID] - The ID of the server. Used by the client to select a specific server. An ID is automatically generated if omitted.
  * @property {Object} stateSchema - The initial state of the server. No new keys should be added to the state after it is set.
+ * @property {Function} getInitialData - A callback function that returns the initial data that gets sent to the user on connection.
  * @property {Number} maxMessagesPerSecond - The maximum amount of messages per second allowed. The client is automatically disconnected if this threshold is broken.
  * @property {Number} clientTimeout - The client will disconnect when this amount of time passes with no messages sent from it.
  * @property {Object} peerSettings - The RTCPeerConnection settings object.
