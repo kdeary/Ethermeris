@@ -19,6 +19,10 @@ class EthermerisClient {
 		 * @type {Number}
 		 */
 		this.id = null;
+		/**
+		 * Turns true when the client has successfully connected with the server
+		 * @type {Boolean}
+		 */
 		this.ready = false;
 		this.socket = null;
 		this.peerConnection = null;
