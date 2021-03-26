@@ -14,6 +14,10 @@ class EthermerisClient {
 	constructor(settings) {
 		this.state = {};
 		this.emitter = new EventEmitter();
+		/**
+		 * Client ID
+		 * @type {Number}
+		 */
 		this.id = null;
 		this.ready = false;
 		this.socket = null;
