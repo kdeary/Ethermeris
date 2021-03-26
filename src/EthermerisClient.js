@@ -24,6 +24,10 @@ class EthermerisClient {
 		 * @type {Boolean}
 		 */
 		this.ready = false;
+		/**
+		 * WebSocket Instance - Only used when in WebSocket mode.
+		 * @type {[type]}
+		 */
 		this.socket = null;
 		this.peerConnection = null;
 		this.dataChannel = null;
