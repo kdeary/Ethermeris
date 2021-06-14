@@ -71,7 +71,7 @@ setInterval(() => {
 
 httpServer.listen(3000);
 ```
-A more in-depth example is available in the `examples/setup` folder. Currently there is only one example.
+A more in-depth example is available in the `examples/setup` folder.
 
 ## Documentation
 Documentation is available here: [https://kdeary.github.io/Ethermeris](https://kdeary.github.io/Ethermeris/)
