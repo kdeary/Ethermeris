@@ -7,9 +7,6 @@ Ethermeris is a real-time networking framework that simplifies state management 
 - A Node.js module for the server
 - A JavaScript client library for the browser
 
-**⚠ WARNING ⚠**
-This package is very experimental and is not at all meant to be used in production. Many security features are missing and many bugs are yet to be found. You have been warned.
-
 ### Main Features
 Ethermeris is very similar to other networking frameworks but:
 Ethermeris's main advantage is speed. 
