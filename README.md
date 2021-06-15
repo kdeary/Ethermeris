@@ -1,6 +1,6 @@
 
 # Ethermeris
-An Real-time State Management Networking Framework for Node.js
+A Real-time State Management Networking Framework for Node.js
 
 ## Features
 Ethermeris is a real-time networking framework that simplifies state management between the server and clients. It consists of:
